@@ -25,7 +25,8 @@ cd backend
 npm install
 npx prisma generate
 npm run build
-npx prisma migrate deploy
+# npx prisma db push é mais resiliente para o deploy inicial com banco já populado
+npx prisma db push
 cd ..
 
 # 4. Configurar Frontend
