@@ -134,7 +134,7 @@ export function PresencaPage() {
             {/* User Intro */}
             <div className="flex items-center justify-between px-2 md:px-0">
                 <div>
-                    <h1 className="text-xl md:text-2xl font-black text-text font-inter tracking-tight">Olá, {user?.name?.split(' ')[0]}!</h1>
+                    <h1 className="text-xl md:text-2xl font-black text-text font-inter tracking-tight">Olá, {user?.name ? user.name.split(' ')[0] : 'Irmão(ã)'}!</h1>
                     <p className="text-[10px] md:text-sm text-subtext font-medium uppercase tracking-[0.2em] opacity-60">Portal de Presença Musical</p>
                 </div>
                 <div className="bg-primary-light/10 p-3 md:p-4 rounded-3xl text-primary font-bold hidden sm:block shadow-sm">
@@ -296,8 +296,8 @@ export function PresencaPage() {
 
                         {/* Instrumento */}
                         <div className="space-y-3 md:space-y-4">
-                            <label className="label-saas flex items-center gap-2 font-black text-lg md:text-xl tracking-tight text-subtext">
-                                <Music size={20} className="text-primary opacity-40 md:w-6 md:h-6 shrink-0" /> QUAL INSTRUMENTO? (OPCIONAL)
+                            <label className="label-saas flex items-center gap-2 font-bold text-lg md:text-xl tracking-tight text-subtext opacity-60">
+                                <Music size={20} className="text-gray-400 md:w-6 md:h-6 shrink-0" /> QUAL INSTRUMENTO? (OPCIONAL)
                             </label>
                             <div className="space-y-3 md:space-y-4">
                                 <select
