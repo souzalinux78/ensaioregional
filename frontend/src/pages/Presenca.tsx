@@ -230,11 +230,11 @@ export function PresencaPage() {
                     </div>
                 </div>
             ) : (
-                <div className="card-saas p-6 md:p-10 shadow-2xl shadow-primary/5">
+                <div className="card-saas p-4 md:p-10 shadow-2xl shadow-primary/5">
                     <form onSubmit={handleSubmit} className="space-y-5 md:space-y-8">
                         {/* Funcao */}
                         <div className="space-y-3 md:space-y-4">
-                            <label className="label-saas flex items-center gap-2 font-black text-lg md:text-xl tracking-tight text-text">
+                            <label className="label-saas flex items-center gap-2 font-black text-base md:text-xl tracking-tighter text-text">
                                 <Info size={20} className="text-primary md:w-6 md:h-6 shrink-0" /> QUAL SUA FUNÇÃO NO MINISTÉRIO?
                             </label>
                             {funcoes.length > 0 ? (
@@ -260,7 +260,7 @@ export function PresencaPage() {
 
                         {/* Cidade */}
                         <div className="space-y-3 md:space-y-4">
-                            <label className="label-saas flex items-center gap-2 font-black text-lg md:text-xl tracking-tight text-text">
+                            <label className="label-saas flex items-center gap-2 font-black text-base md:text-xl tracking-tighter text-text">
                                 <MapPin size={20} className="text-primary md:w-6 md:h-6 shrink-0" /> CIDADE DE ORIGEM (ONDE RESIDE)
                             </label>
                             <div className="space-y-3 md:space-y-4">
@@ -296,8 +296,8 @@ export function PresencaPage() {
 
                         {/* Instrumento */}
                         <div className="space-y-3 md:space-y-4">
-                            <label className="label-saas flex items-center gap-2 font-bold text-lg md:text-xl tracking-tight text-subtext opacity-60">
-                                <Music size={20} className="text-gray-400 md:w-6 md:h-6 shrink-0" /> QUAL INSTRUMENTO? (OPCIONAL)
+                            <label className="label-saas flex items-center gap-2 font-black text-base md:text-xl tracking-tighter text-text">
+                                <Music size={20} className="text-primary md:w-6 md:h-6 shrink-0" /> QUAL INSTRUMENTO? (OPCIONAL)
                             </label>
                             <div className="space-y-3 md:space-y-4">
                                 <select
