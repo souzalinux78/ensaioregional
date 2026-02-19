@@ -73,10 +73,12 @@ app.register(cookie, {
 })
 
 // Routes
-app.register(authRoutes, { prefix: '/auth' })
-app.register(adminRoutes, { prefix: '/admin' })
-app.register(adminUsersRoutes, { prefix: '/admin/users' })
-app.register(presencaRoutes, { prefix: '/presenca' })
+app.register(async (api) => {
+    api.register(authRoutes, { prefix: '/auth' })
+    api.register(adminRoutes, { prefix: '/admin' })
+    api.register(adminUsersRoutes, { prefix: '/admin/users' })
+    api.register(presencaRoutes, { prefix: '/presenca' })
+}, { prefix: '/api' })
 
 // Global Error Handler
 app.setErrorHandler((error, request, reply) => {
