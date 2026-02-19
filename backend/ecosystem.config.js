@@ -3,6 +3,7 @@ module.exports = {
         {
             name: 'ensaioregional-api',
             script: 'dist/server.js',
+            cwd: '/var/www/ensaioregional/backend',
             instances: 1,
             autorestart: true,
             watch: false,

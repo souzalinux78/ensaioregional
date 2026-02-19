@@ -4,7 +4,7 @@ import { api, useAuth } from '../context/AuthContext'
 import { useNavigate } from 'react-router-dom'
 import { jwtDecode } from 'jwt-decode'
 import { LoginCard } from '../components/LoginCard'
-import { AlertCircle, ArrowLeft, ShieldAlert } from 'lucide-react'
+import { ArrowLeft, ShieldAlert } from 'lucide-react'
 import './Login.css'
 
 export function LoginPage() {

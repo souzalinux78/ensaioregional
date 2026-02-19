@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react'
 import { AdminService, User, Evento } from '../../../services/admin.service'
-import { Plus, Shield, User as UserIcon, Mail, Lock, AlertCircle, Link as LinkIcon, Link2Off } from 'lucide-react'
+import { Plus, Shield, User as UserIcon, Lock, Link as LinkIcon, Link2Off } from 'lucide-react'
 import { ModalBase } from '../../../components/ModalBase'
 import { ActionButtons } from '../../../components/ActionButtons'
 

@@ -6,7 +6,7 @@ import { InstrumentosTab } from './admin/tabs/InstrumentosTab'
 import { UsersTab } from './admin/tabs/UsersTab'
 import { RelatoriosTab } from './admin/tabs/RelatoriosTab'
 import { DashboardTab } from './admin/tabs/DashboardTab'
-import { Settings, MapPin, Music } from 'lucide-react'
+import { MapPin, Music } from 'lucide-react'
 import { useState } from 'react'
 
 function ConfigTabs() {
