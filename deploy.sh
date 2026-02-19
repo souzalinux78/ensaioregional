@@ -17,7 +17,8 @@ fi
 
 # 2. Atualizar código do repositório
 echo ">>> Puxando atualizações do GitHub..."
-git pull origin main
+git fetch origin
+git reset --hard origin/main
 
 # 3. Configurar Backend
 echo ">>> Configurando Backend..."
