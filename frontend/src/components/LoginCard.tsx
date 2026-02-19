@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react'
 import { Music2, Eye, EyeOff, AlertCircle, ShieldCheck } from 'lucide-react'
+import { InstallPrompt } from './InstallPrompt'
 
 interface LoginCardProps {
     email: string
@@ -100,6 +101,8 @@ export function LoginCard({
             <p className="mt-8 text-center text-[10px] text-subtext font-bold uppercase tracking-widest opacity-40">
                 Acesso Restrito a Colaboradores Autorizados
             </p>
+
+            <InstallPrompt />
         </div>
     )
 }
