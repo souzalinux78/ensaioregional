@@ -37,8 +37,9 @@ cd ..
 
 # 5. Gerenciar Processo com PM2
 echo ">>> Reiniciando serviços no PM2..."
-# Verifica se o processo já está no PM2, se não, inicia usando o arquivo de config
-pm2 startOrRestart backend/ecosystem.config.js --env production
+cd backend
+pm2 startOrRestart ecosystem.config.js --env production
+cd ..
 
 # 6. Salvar configuração do PM2
 pm2 save
