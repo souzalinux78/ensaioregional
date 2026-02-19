@@ -234,12 +234,12 @@ export function PresencaPage() {
                     <form onSubmit={handleSubmit} className="space-y-5 md:space-y-8">
                         {/* Funcao */}
                         <div className="space-y-3 md:space-y-4">
-                            <label className="label-saas flex items-center gap-2 font-black text-base md:text-lg tracking-tight text-text">
-                                <Info size={18} className="text-primary md:w-5 md:h-5 shrink-0" /> QUAL SUA FUNÇÃO NO MINISTÉRIO?
+                            <label className="label-saas flex items-center gap-2 font-black text-lg md:text-xl tracking-tight text-text">
+                                <Info size={20} className="text-primary md:w-6 md:h-6 shrink-0" /> QUAL SUA FUNÇÃO NO MINISTÉRIO?
                             </label>
                             {funcoes.length > 0 ? (
                                 <select
-                                    className="input-saas font-black h-14 md:h-14 text-base bg-gray-50 border-transparent focus:bg-white focus:ring-2 focus:ring-primary/10 transition-all cursor-pointer"
+                                    className="input-saas font-semibold h-14 md:h-14 text-base bg-gray-50 border-transparent focus:bg-white focus:ring-2 focus:ring-primary/10 transition-all cursor-pointer"
                                     value={funcao}
                                     onChange={e => setFuncao(e.target.value)}
                                     required
@@ -249,7 +249,7 @@ export function PresencaPage() {
                                 </select>
                             ) : (
                                 <input
-                                    className="input-saas uppercase font-black h-14 md:h-14 text-base bg-gray-50 border-transparent focus:bg-white"
+                                    className="input-saas uppercase font-semibold h-14 md:h-14 text-base bg-gray-50 border-transparent focus:bg-white"
                                     value={funcao}
                                     onChange={e => setFuncao(e.target.value.toUpperCase())}
                                     placeholder="EX: MÚSICO, ORGANISTA..."
@@ -260,12 +260,12 @@ export function PresencaPage() {
 
                         {/* Cidade */}
                         <div className="space-y-3 md:space-y-4">
-                            <label className="label-saas flex items-center gap-2 font-black text-base md:text-lg tracking-tight text-text">
-                                <MapPin size={18} className="text-primary md:w-5 md:h-5 shrink-0" /> CIDADE DE ORIGEM (ONDE RESIDE)
+                            <label className="label-saas flex items-center gap-2 font-black text-lg md:text-xl tracking-tight text-text">
+                                <MapPin size={20} className="text-primary md:w-6 md:h-6 shrink-0" /> CIDADE DE ORIGEM (ONDE RESIDE)
                             </label>
                             <div className="space-y-3 md:space-y-4">
                                 <select
-                                    className="input-saas font-black h-14 md:h-14 text-base bg-gray-50 border-transparent focus:bg-white transition-all cursor-pointer"
+                                    className="input-saas font-semibold h-14 md:h-14 text-base bg-gray-50 border-transparent focus:bg-white transition-all cursor-pointer"
                                     value={selectedCidadeId}
                                     onChange={e => {
                                         setSelectedCidadeId(e.target.value)
@@ -282,7 +282,7 @@ export function PresencaPage() {
                                     <div className="h-[1px] flex-1 bg-gray-100"></div>
                                 </div>
                                 <input
-                                    className="input-saas uppercase font-black h-14 md:h-14 text-base bg-gray-50 border-transparent focus:bg-white disabled:opacity-30"
+                                    className="input-saas uppercase font-semibold h-14 md:h-14 text-base bg-gray-50 border-transparent focus:bg-white disabled:opacity-30"
                                     value={newCidadeName}
                                     onChange={e => {
                                         setNewCidadeName(e.target.value.toUpperCase())
@@ -296,12 +296,12 @@ export function PresencaPage() {
 
                         {/* Instrumento */}
                         <div className="space-y-3 md:space-y-4">
-                            <label className="label-saas flex items-center gap-2 font-black text-base md:text-lg tracking-tight text-subtext">
-                                <Music size={18} className="text-primary opacity-40 md:w-5 md:h-5 shrink-0" /> QUAL INSTRUMENTO? (OPCIONAL)
+                            <label className="label-saas flex items-center gap-2 font-black text-lg md:text-xl tracking-tight text-subtext">
+                                <Music size={20} className="text-primary opacity-40 md:w-6 md:h-6 shrink-0" /> QUAL INSTRUMENTO? (OPCIONAL)
                             </label>
                             <div className="space-y-3 md:space-y-4">
                                 <select
-                                    className="input-saas font-black h-14 md:h-14 text-base bg-gray-50 border-transparent focus:bg-white cursor-pointer"
+                                    className="input-saas font-semibold h-14 md:h-14 text-base bg-gray-50 border-transparent focus:bg-white cursor-pointer"
                                     value={selectedInstrumentoId}
                                     onChange={e => {
                                         setSelectedInstrumentoId(e.target.value)
@@ -313,7 +313,7 @@ export function PresencaPage() {
                                     {(instrumentos ?? []).map(i => <option key={i.id} value={i.id}>{i.nome}</option>)}
                                 </select>
                                 <input
-                                    className="input-saas uppercase font-black h-14 md:h-14 text-base bg-gray-50 border-transparent focus:bg-white disabled:opacity-30"
+                                    className="input-saas uppercase font-semibold h-14 md:h-14 text-base bg-gray-50 border-transparent focus:bg-white disabled:opacity-30"
                                     value={newInstrumentoName}
                                     onChange={e => {
                                         setNewInstrumentoName(e.target.value.toUpperCase())
