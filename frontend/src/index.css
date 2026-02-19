@@ -1,0 +1,77 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-bg text-text;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-primary hover:bg-primary-light text-white font-semibold py-2.5 px-6 rounded-xl transition-all shadow-md active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .card-saas {
+    @apply bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow;
+  }
+
+  .input-saas {
+    @apply w-full border border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-primary-light/50 focus:border-primary-light outline-none transition-all bg-white placeholder:text-gray-400;
+  }
+
+  .label-saas {
+    @apply block text-sm font-semibold text-text mb-1.5;
+  }
+
+  .table-saas {
+    @apply w-full text-left border-collapse;
+  }
+
+  .table-saas thead tr {
+    @apply bg-gray-50/50 border-b border-gray-100;
+  }
+
+  .table-saas th {
+    @apply p-4 font-semibold text-gray-500 text-sm uppercase tracking-wider;
+  }
+
+  .table-saas td {
+    @apply p-4 text-text border-b border-gray-50/50;
+  }
+
+  .table-saas tbody tr {
+    @apply hover:bg-gray-50/50 transition-colors;
+  }
+}
+
+/* Custom Scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  @apply bg-gray-200 rounded-full hover:bg-gray-300;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out forwards;
+}

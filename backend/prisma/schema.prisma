@@ -1,0 +1,207 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Tenant {
+  id        String   @id @default(uuid())
+  name      String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  users            User[]
+  ensaiosRegionais EnsaioRegional[]
+  cidades          Cidade[]
+  instrumentos     Instrumento[]
+  funcoesMinisterio FuncaoMinisterio[]
+  registros        RegistroPresenca[]
+  auditLogs        AuditLog[]
+  refreshTokens    RefreshToken[]
+  eventoUsuarios   EventoUsuario[]
+
+  @@map("tenants")
+}
+
+model User {
+  id               String    @id @default(uuid())
+  tenantId         String    @map("tenant_id")
+  name             String
+  email            String
+  passwordHash     String    @map("password_hash")
+  role             Role      @default(USER)
+  ensaioRegionalId String?   @map("ensaio_regional_id")
+  acessoLiberado   Boolean   @default(false) @map("acesso_liberado")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  deletedAt        DateTime? @map("deleted_at")
+
+  tenant         Tenant          @relation(fields: [tenantId], references: [id])
+  ensaioRegional EnsaioRegional? @relation(fields: [ensaioRegionalId], references: [id])
+
+  registros     RegistroPresenca[]
+  auditLogs     AuditLog[]
+  refreshTokens RefreshToken[]
+  convocacoes   EventoUsuario[]
+
+  @@unique([tenantId, email])
+  @@map("users")
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+model EnsaioRegional {
+  id                String    @id @default(uuid())
+  tenantId          String    @map("tenant_id")
+  nome              String
+  dataEvento        DateTime  @map("data_evento")
+  dataHoraInicio    DateTime  @map("data_hora_inicio")
+  dataHoraFim       DateTime  @map("data_hora_fim")
+  ativo             Boolean   @default(true)
+  anciaoAtendimento String?   @map("anciao_atendimento")
+  regionalRegente   String?   @map("regional_regente")
+  regionalRegente2  String?   @map("regional_regente_2")
+  regionalPrincipal String?   @map("regional_principal")
+  regionalSecundario String?  @map("regional_secundario")
+  dataInicio        DateTime? @map("data_inicio")
+  dataFim           DateTime? @map("data_fim")
+  localEvento       String?   @map("local_evento")
+  cidadeEvento      String?   @map("cidade_evento")
+  modoConvocacao    Boolean   @default(false) @map("modo_convocacao")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  deletedAt         DateTime? @map("deleted_at")
+
+  tenant    Tenant             @relation(fields: [tenantId], references: [id])
+  users     User[]
+  registros RegistroPresenca[]
+  usuariosConvocados EventoUsuario[]
+
+  @@index([tenantId])
+  @@index([dataInicio, dataFim], name: "idx_evento_periodo")
+  @@map("ensaios_regionais")
+}
+
+model EventoUsuario {
+  id               String   @id @default(uuid())
+  tenantId         String   @map("tenant_id")
+  ensaioRegionalId String   @map("ensaio_regional_id")
+  userId           String   @map("user_id")
+  convocado        Boolean  @default(true)
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  tenant         Tenant         @relation(fields: [tenantId], references: [id])
+  ensaioRegional EnsaioRegional @relation(fields: [ensaioRegionalId], references: [id])
+  user           User           @relation(fields: [userId], references: [id])
+
+  @@unique([ensaioRegionalId, userId])
+  @@index([tenantId])
+  @@map("evento_usuarios")
+}
+
+model Cidade {
+  id           String    @id @default(uuid())
+  tenantId     String    @map("tenant_id")
+  nome         String    // Coluna antiga para migração
+  nomeCidade   String?   @map("nome_cidade")
+  nomeBairro   String?   @map("nome_bairro")
+  nomeExibicao String?   @map("nome_exibicao")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  deletedAt    DateTime? @map("deleted_at")
+
+  tenant    Tenant             @relation(fields: [tenantId], references: [id])
+  registros RegistroPresenca[]
+
+  @@unique([tenantId, nome])
+  @@index([nomeCidade], name: "idx_cidade_nome")
+  @@map("cidades")
+}
+
+model Instrumento {
+  id        String    @id @default(uuid())
+  tenantId  String    @map("tenant_id")
+  nome      String // UPPERCASE
+  createdAt DateTime  @default(now()) @map("created_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  tenant    Tenant             @relation(fields: [tenantId], references: [id])
+  registros RegistroPresenca[]
+
+  @@unique([tenantId, nome])
+  @@map("instrumentos")
+}
+
+model FuncaoMinisterio {
+  id        String    @id @default(uuid())
+  tenantId  String    @map("tenant_id")
+  nome      String    // UPPERCASE
+  createdAt DateTime  @default(now()) @map("created_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@unique([tenantId, nome])
+  @@map("funcoes_ministerio")
+}
+
+model RegistroPresenca {
+  id               String   @id @default(uuid())
+  tenantId         String   @map("tenant_id")
+  ensaioRegionalId String   @map("ensaio_regional_id")
+  userId           String   @map("user_id")
+  funcaoMinisterio String   @map("funcao_ministerio") // UPPERCASE
+  cidadeId         String   @map("cidade_id")
+  instrumentoId    String?  @map("instrumento_id")
+  instrumentoOutro String?  @map("instrumento_outro") // UPPERCASE
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  tenant         Tenant         @relation(fields: [tenantId], references: [id])
+  ensaioRegional EnsaioRegional @relation(fields: [ensaioRegionalId], references: [id])
+  user           User           @relation(fields: [userId], references: [id])
+  cidade         Cidade         @relation(fields: [cidadeId], references: [id])
+  instrumento    Instrumento?   @relation(fields: [instrumentoId], references: [id])
+
+  @@index([tenantId, ensaioRegionalId])
+  @@index([tenantId, userId])
+  @@map("registros_presenca")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  tenantId  String   @map("tenant_id")
+  userId    String   @map("user_id")
+  tokenHash String   @map("token_hash") @db.VarChar(255)
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  revokedAt DateTime? @map("revoked_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+  user   User   @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([tenantId])
+  @@index([expiresAt])
+  @@map("refresh_tokens")
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  tenantId  String   @map("tenant_id")
+  userId    String   @map("user_id")
+  action    String
+  entity    String
+  entityId  String   @map("entity_id")
+  details   String?  @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+  user   User   @relation(fields: [userId], references: [id])
+
+  @@index([tenantId])
+  @@index([userId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
