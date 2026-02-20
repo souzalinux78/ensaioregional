@@ -1,5 +1,6 @@
 
-import { useState, useEffect } from 'react'
+import { useRef, useState, useEffect } from 'react'
+import html2canvas from 'html2canvas'
 import { AdminService, BIStats } from '../../../services/admin.service'
 import {
     Activity,
@@ -11,7 +12,8 @@ import {
     AlertCircle,
     Trophy,
     Calendar,
-    ArrowRight
+    ArrowRight,
+    Download
 } from 'lucide-react'
 import {
     BarChart,
@@ -28,6 +30,10 @@ import {
 export function BITab() {
     const [stats, setStats] = useState<BIStats | null>(null)
     const [loading, setLoading] = useState(true)
+    const [exporting, setExporting] = useState(false)
+
+    const chartRefComparison = useRef<HTMLDivElement>(null)
+    const chartRefGoals = useRef<HTMLDivElement>(null)
 
     const fetchData = async () => {
         setLoading(true)
@@ -38,6 +44,27 @@ export function BITab() {
             console.error(e)
         } finally {
             setLoading(false)
+        }
+    }
+
+    const handleExportPdf = async () => {
+        if (!stats || !chartRefComparison.current || !chartRefGoals.current) return
+
+        setExporting(true)
+        try {
+            const compCanvas = await html2canvas(chartRefComparison.current, { scale: 2, backgroundColor: '#ffffff' })
+            const goalsCanvas = await html2canvas(chartRefGoals.current, { scale: 2, backgroundColor: '#ffffff' })
+
+            const chartImages = {
+                comparison: compCanvas.toDataURL('image/png'),
+                goals: goalsCanvas.toDataURL('image/png')
+            }
+
+            await AdminService.downloadBIPdf(stats, chartImages)
+        } catch (e) {
+            console.error('PDF_EXPORT_ERROR', e)
+        } finally {
+            setExporting(false)
         }
     }
 
@@ -58,17 +85,31 @@ export function BITab() {
     return (
         <div className="space-y-8 animate-fade-in pb-12">
             {/* Header */}
-            <div className="flex justify-between items-end">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6">
                 <div>
                     <h1 className="text-2xl font-black text-text tracking-tight uppercase flex items-center gap-3">
                         <Activity className="text-primary" size={28} /> Inteligência de Negócio (BI)
                     </h1>
                     <p className="text-sm text-subtext font-medium uppercase tracking-widest opacity-70">Análise estratégica de crescimento e metas</p>
                 </div>
-                <div className="bg-white px-4 py-2 rounded-2xl border border-gray-100 shadow-sm">
-                    <span className="text-[10px] font-black text-subtext uppercase tracking-widest flex items-center gap-2">
-                        <Calendar size={14} /> Mês de Referência: {new Date().toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}
-                    </span>
+                <div className="flex items-center gap-4">
+                    <button
+                        onClick={handleExportPdf}
+                        disabled={exporting}
+                        className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center gap-2 transition-all shadow-lg shadow-blue-100"
+                    >
+                        {exporting ? (
+                            <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
+                        ) : (
+                            <Download size={16} />
+                        )}
+                        {exporting ? 'Gerando...' : 'Exportar Relatório BI'}
+                    </button>
+                    <div className="bg-white px-4 py-2 rounded-2xl border border-gray-100 shadow-sm hidden md:block">
+                        <span className="text-[10px] font-black text-subtext uppercase tracking-widest flex items-center gap-2">
+                            <Calendar size={14} /> Mês de Referência: {new Date().toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}
+                        </span>
+                    </div>
                 </div>
             </div>
 
@@ -144,7 +185,7 @@ export function BITab() {
                             </div>
                         </div>
                     </div>
-                    <div className="flex-1 min-h-0">
+                    <div className="flex-1 min-h-0" ref={chartRefComparison}>
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={stats.comparativoMensal} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
@@ -180,7 +221,7 @@ export function BITab() {
                             </div>
                         </div>
                     </div>
-                    <div className="flex-1 min-h-0">
+                    <div className="flex-1 min-h-0" ref={chartRefGoals}>
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={stats.metasVsRealizado} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
@@ -196,7 +237,7 @@ export function BITab() {
                                     contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', textTransform: 'uppercase', fontSize: '10px', fontWeight: '900' }}
                                 />
                                 <Bar name="Realizado" dataKey="realizado" radius={[6, 6, 0, 0]} barSize={40}>
-                                    {stats.metasVsRealizado.map((entry, index) => (
+                                    {stats.metasVsRealizado.map((entry: any, index: number) => (
                                         <Cell key={`cell-${index}`} fill={entry.realizado >= entry.meta && entry.meta > 0 ? '#059669' : '#7c3aed'} />
                                     ))}
                                 </Bar>
@@ -219,7 +260,7 @@ export function BITab() {
                 </div>
                 <div className="p-4 overflow-x-auto">
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {stats.rankingPerformance.map((item, i) => {
+                        {stats.rankingPerformance.map((item: any, i: number) => {
                             const isAchieved = item.percentual >= 100
                             const isWarning = item.percentual < 70 && item.meta > 0
 

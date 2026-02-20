@@ -188,6 +188,18 @@ export const AdminService = {
         window.URL.revokeObjectURL(url)
     },
 
+    downloadBIPdf: async (stats: BIStats, chartImages: { comparison?: string; goals?: string }, regionalNome?: string) => {
+        const response = await api.post('/admin/relatorios/bi/pdf', { stats, chartImages, regionalNome }, { responseType: 'blob' })
+        const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }))
+        const link = document.createElement('a')
+        link.href = url
+        link.setAttribute('download', `RELATORIO_BI_EXECUTIVO.pdf`)
+        document.body.appendChild(link)
+        link.click()
+        link.remove()
+        window.URL.revokeObjectURL(url)
+    },
+
     // Usuários
     getUsers: () => api.get<User[]>('/admin/users'),
     createUser: (data: any) => api.post('/admin/users', data),

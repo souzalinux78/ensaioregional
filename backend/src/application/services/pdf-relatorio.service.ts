@@ -320,4 +320,143 @@ export class PdfRelatorioService {
             doc.end()
         })
     }
+    async gerarBIPdf(stats: any, chartImages: { comparison?: string; goals?: string }, regionalNome?: string): Promise<Buffer> {
+        return new Promise((resolve, reject) => {
+            const doc = new PDFDocument({ margin: 40, size: 'A4' })
+            const buffers: Buffer[] = []
+            doc.on('data', c => buffers.push(c))
+            doc.on('end', () => resolve(Buffer.concat(buffers)))
+            doc.on('error', reject)
+
+            const startX = 50
+            let y = 40
+            const tableW = 500
+
+            // 1. CAPA / CABEÇALHO
+            doc.rect(startX, y, tableW, 60).lineWidth(1).stroke()
+
+            const logoP = path.resolve(process.cwd(), 'public', 'logo-ccb.png')
+            if (fs.existsSync(logoP)) {
+                doc.image(logoP, startX + 5, y + 5, { fit: [80, 50] })
+            } else {
+                doc.font('Helvetica-Bold').fontSize(10).text('CCB', startX + 5, y + 20, { width: 80, align: 'center' })
+            }
+
+            doc.moveTo(startX + 90, y).lineTo(startX + 90, y + 60).stroke()
+            doc.font('Helvetica-Bold').fontSize(12).text('CONGREGAÇÃO CRISTÃ NO BRASIL', startX + 95, y + 10)
+            doc.fontSize(10).text('SECRETARIA DA MÚSICA', startX + 95, y + 25)
+            const title = regionalNome ? `RELATÓRIO EXECUTIVO BI - ${regionalNome.toUpperCase()}` : 'RELATÓRIO GERAL BI'
+            doc.fillColor('#2563eb').fontSize(14).text(title, startX + 95, y + 40)
+            doc.fillColor('#000')
+
+            y += 80
+
+            // INFO GERAL
+            doc.font('Helvetica').fontSize(9).text(`Emitido em: ${dayjs().format('DD/MM/YYYY HH:mm')}`, startX, y)
+            doc.text(`Período de Referência: ${dayjs().format('MMMM/YYYY').toUpperCase()}`, startX, y + 12)
+            y += 40
+
+            // 2. RESUMO ESTRATÉGICO (CARDS)
+            doc.font('Helvetica-Bold').fontSize(11).text('1. RESUMO ESTRATÉGICO', startX, y)
+            y += 20
+
+            const cardW = (tableW - 20) / 3
+            const cardH = 50
+
+            // Card 1: Presenças
+            doc.rect(startX, y, cardW, cardH).fill('#f8fafc').stroke('#e2e8f0')
+            doc.fill('#64748b').fontSize(7).text('TOTAL PRESENÇAS', startX + 5, y + 8)
+            doc.fill('#0f172a').fontSize(16).text(String(stats.resumoGeral.totalPresencas), startX + 5, y + 22)
+
+            // Card 2: Crescimento
+            const cresc = stats.resumoGeral.crescimentoGlobal
+            const isPos = cresc >= 0
+            doc.rect(startX + cardW + 10, y, cardW, cardH).fill('#f8fafc').stroke('#e2e8f0')
+            doc.fill('#64748b').fontSize(7).text('CRESCIMENTO MENSAL', startX + cardW + 15, y + 8)
+            doc.fill(isPos ? '#059669' : '#dc2626').fontSize(16).text(`${isPos ? '+' : ''}${cresc}% ${isPos ? '↑' : '↓'}`, startX + cardW + 15, y + 22)
+
+            // Card 3: Meta Global
+            doc.rect(startX + (cardW + 10) * 2, y, cardW, cardH).fill('#f8fafc').stroke('#e2e8f0')
+            doc.fill('#64748b').fontSize(7).text('META GLOBAL', startX + (cardW + 10) * 2 + 5, y + 8)
+            doc.fill('#0f172a').fontSize(16).text(String(stats.resumoGeral.metaGlobal), startX + (cardW + 10) * 2 + 5, y + 22)
+
+            y += 70
+
+            // 4. META VS REALIZADO
+            doc.fill('#000').font('Helvetica-Bold').fontSize(11).text('2. METAS VS REALIZADO', startX, y)
+            y += 15
+
+            const headerH = 20
+            const rowH = 18
+            doc.rect(startX, y, tableW, headerH).fill('#2563eb')
+            doc.fill('#ffffff').font('Helvetica-Bold').fontSize(9)
+            doc.text('REGIONAL', startX + 5, y + 6)
+            doc.text('META', startX + 200, y + 6, { width: 80, align: 'center' })
+            doc.text('REALIZADO', startX + 280, y + 6, { width: 80, align: 'center' })
+            doc.text('% ATINGIDO', startX + 360, y + 6, { width: 130, align: 'center' })
+            y += headerH
+
+            stats.metasVsRealizado.forEach((item: any, i: number) => {
+                if (y > 750) { doc.addPage(); y = 40; }
+                const isEven = i % 2 === 0
+                if (!isEven) doc.rect(startX, y, tableW, rowH).fill('#f8fafc')
+                doc.fill('#1e293b').font('Helvetica').fontSize(9)
+                doc.text(item.regional, startX + 5, y + 5)
+                doc.text(String(item.meta), startX + 200, y + 5, { width: 80, align: 'center' })
+                doc.text(String(item.realizado), startX + 280, y + 5, { width: 80, align: 'center' })
+
+                const isMet = item.percentual >= 100
+                doc.fill(isMet ? '#059669' : '#1e293b').font(isMet ? 'Helvetica-Bold' : 'Helvetica')
+                doc.text(`${item.percentual}% ${isMet ? '(META ATINGIDA)' : ''}`, startX + 360, y + 5, { width: 130, align: 'center' })
+                y += rowH
+            })
+
+            y += 30
+
+            // 5. RANKING
+            doc.fill('#000').font('Helvetica-Bold').fontSize(11).text('3. RANKING DE PERFORMANCE', startX, y)
+            y += 15
+            stats.rankingPerformance.slice(0, 5).forEach((item: any, i: number) => {
+                doc.font('Helvetica-Bold').fontSize(10).text(`${i + 1}º ${item.regional} - ${item.percentual}%`, startX + 20, y)
+                y += 15
+            })
+
+            y += 20
+
+            // 6. GRÁFICOS
+            if (chartImages.comparison || chartImages.goals) {
+                doc.addPage()
+                y = 40
+                doc.font('Helvetica-Bold').fontSize(11).text('4. ANÁLISE GRÁFICA CONSOLIDADA', startX, y)
+                y += 30
+
+                if (chartImages.comparison) {
+                    try {
+                        const base64Data = chartImages.comparison.replace(/^data:image\/\w+;base64,/, '')
+                        doc.image(Buffer.from(base64Data, 'base64'), startX, y, { width: 500 })
+                        y += 250
+                    } catch (e) { console.error('E-PDF-CHART-COMP', e) }
+                }
+
+                if (chartImages.goals) {
+                    if (y > 450) { doc.addPage(); y = 40; }
+                    try {
+                        const base64Data = chartImages.goals.replace(/^data:image\/\w+;base64,/, '')
+                        doc.image(Buffer.from(base64Data, 'base64'), startX, y, { width: 500 })
+                    } catch (e) { console.error('E-PDF-CHART-GOALS', e) }
+                }
+            }
+
+            // RODAPÉ em todas as páginas
+            const pages = doc.bufferedPageRange()
+            for (let i = 0; i < pages.count; i++) {
+                doc.switchToPage(i)
+                doc.fontSize(7).fillColor('#94a3b8')
+                doc.text('Sistema de Eventos Musicais CCB - Relatório Executivo Estratégico', 40, 800, { align: 'center' })
+                doc.text('Emitido automaticamente pelo sistema', 40, 810, { align: 'center' })
+            }
+
+            doc.end()
+        })
+    }
 }

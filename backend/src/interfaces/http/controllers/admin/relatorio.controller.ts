@@ -34,6 +34,21 @@ export class RelatorioController {
         return reply.send(stats)
     }
 
+    async gerarBIPdf(request: FastifyRequest, reply: FastifyReply) {
+        const { tenantId, role } = (request as any).user
+        if (role !== 'SUPERADMIN' && role !== 'ADMIN') {
+            return reply.status(403).send({ message: 'Acesso restrito' })
+        }
+
+        const { stats, chartImages, regionalNome } = request.body as any
+        const pdf = await pdfService.gerarBIPdf(stats, chartImages, regionalNome)
+
+        return reply
+            .type('application/pdf')
+            .header('Content-Disposition', 'attachment; filename=relatorio_bi_executivo.pdf')
+            .send(pdf)
+    }
+
     async exportCsv(request: FastifyRequest, reply: FastifyReply) {
         const { tenantId, role, regionalId } = (request as any).user
         const csv = await service.exportCsv(tenantId, role, regionalId)
