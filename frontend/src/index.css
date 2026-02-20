@@ -15,11 +15,7 @@
   }
 
   .card-saas {
-    @apply bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow md:rounded-xl;
-
-    @screen max-md {
-      @apply p-0 rounded-none border-x-0 shadow-none;
-    }
+    @apply bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow md:rounded-xl max-md:p-0 max-md:rounded-none max-md:border-x-0 max-md:shadow-none;
   }
 
   .input-saas {
