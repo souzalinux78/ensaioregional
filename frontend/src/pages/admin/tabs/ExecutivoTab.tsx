@@ -8,7 +8,8 @@ import {
     CheckCircle2,
     Map as MapIcon,
     ArrowUpRight,
-    Trophy
+    Trophy,
+    BarChart as BarChartIcon
 } from 'lucide-react'
 import {
     BarChart,
@@ -94,7 +95,7 @@ export function ExecutivoTab() {
                     <div className="flex items-center justify-between mb-8">
                         <div className="flex items-center gap-3">
                             <div className="p-2 bg-blue-50 text-blue-600 rounded-xl">
-                                <BarChart size={20} />
+                                <BarChartIcon size={20} />
                             </div>
                             <h3 className="text-sm font-black text-text uppercase tracking-widest">Presenças por Regional</h3>
                         </div>
@@ -192,8 +193,8 @@ export function ExecutivoTab() {
                                             <td className="px-8 py-5">
                                                 <div className="flex items-center gap-3">
                                                     <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black ${i === 0 ? 'bg-yellow-100 text-yellow-700' :
-                                                            i === 1 ? 'bg-slate-100 text-slate-600' :
-                                                                i === 2 ? 'bg-orange-100 text-orange-700' : 'bg-gray-50 text-subtext'
+                                                        i === 1 ? 'bg-slate-100 text-slate-600' :
+                                                            i === 2 ? 'bg-orange-100 text-orange-700' : 'bg-gray-50 text-subtext'
                                                         }`}>
                                                         {i + 1}
                                                     </span>
