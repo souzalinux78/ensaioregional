@@ -29,6 +29,8 @@ export class AdminEnsaioController {
             regionalSecundario: z.string().optional(),
             localEvento: z.string().optional(),
             cidadeEvento: z.string().optional(),
+            tipoResponsavelPrincipal: z.string().optional(),
+            tipoResponsavelSecundario: z.string().optional(),
             modoConvocacao: z.boolean().optional()
         })
 
@@ -67,6 +69,8 @@ export class AdminEnsaioController {
             regionalSecundario: z.string().optional(),
             localEvento: z.string().optional(),
             cidadeEvento: z.string().optional(),
+            tipoResponsavelPrincipal: z.string().optional(),
+            tipoResponsavelSecundario: z.string().optional(),
             modoConvocacao: z.boolean().optional()
         })
 
