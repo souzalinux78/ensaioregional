@@ -8,6 +8,7 @@ import { RelatoriosTab } from './admin/tabs/RelatoriosTab'
 import { DashboardTab } from './admin/tabs/DashboardTab'
 import { RegionaisTab } from './admin/tabs/RegionaisTab'
 import { ExecutivoTab } from './admin/tabs/ExecutivoTab'
+import { BITab } from './admin/tabs/BITab'
 import { MapPin, Music } from 'lucide-react'
 import { useState } from 'react'
 
@@ -51,6 +52,7 @@ export function AdminPage() {
         <Routes>
             <Route path="/" element={<DashboardTab />} />
             <Route path="/executivo" element={<ExecutivoTab />} />
+            <Route path="/bi" element={<BITab />} />
             <Route path="/eventos" element={<EnsaiosTab />} />
             <Route path="/relatorios" element={<RelatoriosTab />} />
             <Route path="/usuarios" element={<UsersTab />} />

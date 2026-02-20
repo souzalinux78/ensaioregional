@@ -241,4 +241,112 @@ export class RelatorioService {
             evolucaoMensal
         }
     }
+
+    async getBIStats(tenantId: string) {
+        const now = new Date()
+        const mesAtual = now.getMonth() + 1
+        const anoAtual = now.getFullYear()
+
+        const mesAnteriorDate = new Date()
+        mesAnteriorDate.setMonth(now.getMonth() - 1)
+        const mesAnterior = mesAnteriorDate.getMonth() + 1
+        const anoAnterior = mesAnteriorDate.getFullYear()
+
+        // 1. Fetch Goals
+        const metas = await prisma.metaRegional.findMany({
+            where: { tenantId, ano: anoAtual, mes: mesAtual },
+            include: { regional: true }
+        })
+
+        // 2. Mes Atual Stats
+        const startMesAtual = new Date(anoAtual, mesAtual - 1, 1)
+        const endMesAtual = new Date(anoAtual, mesAtual, 0, 23, 59, 59, 999)
+
+        const [statsMesAtual, statsMesAnterior] = await Promise.all([
+            prisma.registroPresenca.findMany({
+                where: { tenantId, createdAt: { gte: startMesAtual, lte: endMesAtual } },
+                include: { ensaioRegional: true }
+            }),
+            prisma.registroPresenca.findMany({
+                where: {
+                    tenantId,
+                    createdAt: {
+                        gte: new Date(anoAnterior, mesAnterior - 1, 1),
+                        lte: new Date(anoAnterior, mesAnterior, 0, 23, 59, 59, 999)
+                    }
+                },
+                include: { ensaioRegional: true }
+            })
+        ])
+
+        // Group by Regional
+        const groupByRegional = (data: any[]) => {
+            const counts: Record<string, number> = {}
+            data.forEach(p => {
+                const regId = p.ensaioRegional.regionalId || 'default'
+                counts[regId] = (counts[regId] || 0) + 1
+            })
+            return counts
+        }
+
+        const countsMesAtual = groupByRegional(statsMesAtual)
+        const countsMesAnterior = groupByRegional(statsMesAnterior)
+
+        const regionais = await prisma.regional.findMany({ where: { tenantId } })
+
+        const comparativoMensal = regionais.map(r => {
+            const atual = countsMesAtual[r.id] || 0
+            const anterior = countsMesAnterior[r.id] || 0
+            let crescimento = 0
+            if (anterior > 0) {
+                crescimento = ((atual - anterior) / anterior) * 100
+            } else if (atual > 0) {
+                crescimento = 100
+            }
+
+            return {
+                regional: r.nome,
+                regionalId: r.id,
+                mesAtual: atual,
+                mesAnterior: anterior,
+                crescimento: parseFloat(crescimento.toFixed(1))
+            }
+        })
+
+        const metasVsRealizado = regionais.map(r => {
+            const meta = metas.find((m: any) => m.regionalId === r.id)
+            const realizado = countsMesAtual[r.id] || 0
+            const metaPresencas = meta?.metaPresencasMensal || 0
+
+            return {
+                regional: r.nome,
+                realizado,
+                meta: metaPresencas,
+                percentual: metaPresencas > 0 ? parseFloat(((realizado / metaPresencas) * 100).toFixed(1)) : 0
+            }
+        })
+
+        const rankingPerformance = [...metasVsRealizado]
+            .sort((a, b) => b.percentual - a.percentual)
+
+        const totalPresencasMesAtual = statsMesAtual.length
+        const totalPresencasMesAnterior = statsMesAnterior.length
+        let crescimentoGlobal = 0
+        if (totalPresencasMesAnterior > 0) {
+            crescimentoGlobal = ((totalPresencasMesAtual - totalPresencasMesAnterior) / totalPresencasMesAnterior) * 100
+        } else if (totalPresencasMesAtual > 0) {
+            crescimentoGlobal = 100
+        }
+
+        return {
+            resumoGeral: {
+                totalPresencas: totalPresencasMesAtual,
+                crescimentoGlobal: parseFloat(crescimentoGlobal.toFixed(1)),
+                metaGlobal: metas.reduce((acc: number, curr: any) => acc + curr.metaPresencasMensal, 0)
+            },
+            comparativoMensal,
+            metasVsRealizado,
+            rankingPerformance
+        }
+    }
 }

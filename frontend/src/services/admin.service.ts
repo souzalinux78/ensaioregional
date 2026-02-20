@@ -75,6 +75,33 @@ export interface ExecutiveStats {
     evolucaoMensal: { mes: string, total: number }[]
 }
 
+export interface BIStats {
+    resumoGeral: {
+        totalPresencas: number
+        crescimentoGlobal: number
+        metaGlobal: number
+    }
+    comparativoMensal: {
+        regional: string
+        regionalId: string
+        mesAtual: number
+        mesAnterior: number
+        crescimento: number
+    }[]
+    metasVsRealizado: {
+        regional: string
+        realizado: number
+        meta: number
+        percentual: number
+    }[]
+    rankingPerformance: {
+        regional: string
+        realizado: number
+        meta: number
+        percentual: number
+    }[]
+}
+
 export const AdminService = {
     // Eventos Musicais CCB
     getEventos: () => api.get<Evento[]>('/admin/ensaios'),
@@ -111,6 +138,7 @@ export const AdminService = {
     // Relatorios
     getStats: (params?: { search?: string, date?: string, eventId?: string, regionalId?: string }) => api.get<Stats>('/admin/relatorios/stats', { params }),
     getExecutiveStats: () => api.get<ExecutiveStats>('/admin/relatorios/executivo'),
+    getBIStats: () => api.get<BIStats>('/admin/relatorios/bi'),
     exportCsv: async () => {
         const response = await api.get('/admin/relatorios/export', { responseType: 'blob' })
         const url = window.URL.createObjectURL(new Blob([response.data]))

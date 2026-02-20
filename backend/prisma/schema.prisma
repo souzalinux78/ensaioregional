@@ -22,6 +22,7 @@ model Tenant {
   refreshTokens    RefreshToken[]
   eventoUsuarios   EventoUsuario[]
   regionais        Regional[]
+  metas            MetaRegional[]
 
   @@map("tenants")
 }
@@ -70,6 +71,7 @@ model Regional {
   tenant           Tenant           @relation(fields: [tenantId], references: [id])
   users            User[]
   ensaiosRegionais EnsaioRegional[]
+  metas            MetaRegional[]
 
   @@map("regionais")
 }
@@ -229,3 +231,21 @@ model AuditLog {
   @@index([createdAt])
   @@map("audit_logs")
 }
+
+model MetaRegional {
+  id                   String   @id @default(uuid())
+  tenantId             String   @map("tenant_id")
+  regionalId           String   @map("regional_id")
+  metaEventosMensal    Int      @default(0) @map("meta_eventos_mensal")
+  metaPresencasMensal   Int      @default(0) @map("meta_presencas_mensal")
+  ano                  Int
+  mes                  Int
+  createdAt            DateTime @default(now()) @map("created_at")
+
+  tenant   Tenant   @relation(fields: [tenantId], references: [id])
+  regional Regional @relation(fields: [regionalId], references: [id])
+
+  @@unique([tenantId, regionalId, ano, mes])
+  @@map("metas_regionais")
+}
+
