@@ -1,7 +1,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { AdminService, Stats } from '../../../services/admin.service'
-import { Download, FileText, BarChart, Search, Calendar, FileStack, AlertCircle } from 'lucide-react'
+import { Download, FileText, BarChart, Search, Calendar, FileStack, AlertCircle, Map as MapIcon } from 'lucide-react'
 import dayjs from 'dayjs'
 
 export function RelatoriosTab() {
@@ -12,13 +12,16 @@ export function RelatoriosTab() {
     const [pdfLoadingId, setPdfLoadingId] = useState<string | null>(null)
     const [pdfAnaliticoLoadingId, setPdfAnaliticoLoadingId] = useState<string | null>(null)
     const [consolidadoLoading, setConsolidadoLoading] = useState(false)
+    const [regionalId, setRegionalId] = useState('')
+    const [regionais, setRegionais] = useState<any[]>([])
 
     const fetchStats = useCallback(async () => {
         setLoading(true)
         try {
             const res = await AdminService.getStats({
                 search: searchTerm || undefined,
-                date: filterDate || undefined
+                date: filterDate || undefined,
+                regionalId: regionalId || undefined
             })
             setStats(res.data)
         } catch (e) {
@@ -27,6 +30,10 @@ export function RelatoriosTab() {
             setLoading(false)
         }
     }, [searchTerm, filterDate])
+
+    useEffect(() => {
+        AdminService.getRegionais().then(res => setRegionais(res.data))
+    }, [])
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -118,6 +125,21 @@ export function RelatoriosTab() {
                         onChange={e => setFilterDate(e.target.value)}
                     />
                 </div>
+                {regionais.length > 0 && (
+                    <div className="md:col-span-2 relative group">
+                        <MapIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-600 transition-colors" size={18} />
+                        <select
+                            className="input-saas pl-12 h-14 bg-white border-gray-100 focus:border-blue-200 font-black text-[10px] uppercase tracking-widest"
+                            value={regionalId}
+                            onChange={e => setRegionalId(e.target.value)}
+                        >
+                            <option value="">FILTRAR POR TODAS AS REGIONAIS</option>
+                            {regionais.map(r => (
+                                <option key={r.id} value={r.id}>{r.nome}</option>
+                            ))}
+                        </select>
+                    </div>
+                )}
             </div>
 
             {/* Content Display */}

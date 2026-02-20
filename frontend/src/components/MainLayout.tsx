@@ -13,7 +13,8 @@ import {
     CalendarDays,
     Users,
     Menu,
-    X
+    X,
+    MapPin
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { PWAInstallPrompt } from './PWAInstallPrompt'
@@ -28,13 +29,15 @@ export function MainLayout({ children }: MainLayoutProps) {
     const navigate = useNavigate()
     const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
-    const isAdmin = user?.role === 'ADMIN'
+    const isAdmin = user?.role === 'SUPERADMIN' || user?.role === 'ADMIN_REGIONAL' || user?.role === 'ADMIN'
+    const isSuperAdmin = user?.role === 'SUPERADMIN' || user?.role === 'ADMIN'
 
     const adminMenu = [
         { title: 'Início', icon: LayoutDashboard, path: '/admin' },
         { title: 'Eventos', icon: CalendarDays, path: '/admin/eventos' },
         { title: 'Relatórios', icon: BarChart3, path: '/admin/relatorios' },
         { title: 'Usuários', icon: Users, path: '/admin/usuarios' },
+        ...(isSuperAdmin ? [{ title: 'Regionais', icon: MapPin, path: '/admin/regionais' }] : []),
         { title: 'Ajustes', icon: Settings, path: '/admin/config' },
     ]
 

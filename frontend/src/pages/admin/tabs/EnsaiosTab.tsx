@@ -14,6 +14,7 @@ export function EnsaiosTab() {
     const [summonModalOpen, setSummonModalOpen] = useState(false)
     const [editItem, setEditItem] = useState<Evento | null>(null)
     const [summonItem, setSummonItem] = useState<Evento | null>(null)
+    const [regionais, setRegionais] = useState<any[]>([])
 
     // Form State
     const [nome, setNome] = useState('')
@@ -27,6 +28,7 @@ export function EnsaiosTab() {
     const [tipoResponsavelSecundario, setTipoResponsavelSecundario] = useState('REGIONAL')
     const [localEvento, setLocalEvento] = useState('')
     const [cidadeEvento, setCidadeEvento] = useState('')
+    const [regionalId, setRegionalId] = useState('')
 
     // Summon State
     const [selectedUserIds, setSelectedUserIds] = useState<string[]>([])
@@ -52,9 +54,19 @@ export function EnsaiosTab() {
         }
     }
 
+    const fetchRegionais = async () => {
+        try {
+            const res = await AdminService.getRegionais()
+            setRegionais(res.data)
+        } catch (e) {
+            console.error(e)
+        }
+    }
+
     useEffect(() => {
         fetchEventos()
         fetchUsers()
+        fetchRegionais()
     }, [])
 
     const handleSave = async (e: React.FormEvent) => {
@@ -87,7 +99,8 @@ export function EnsaiosTab() {
                 tipoResponsavelPrincipal: tipoResponsavelPrincipal,
                 tipoResponsavelSecundario: tipoResponsavelSecundario,
                 localEvento: localEvento.trim().toUpperCase(),
-                cidadeEvento: cidadeEvento.trim().toUpperCase()
+                cidadeEvento: cidadeEvento.trim().toUpperCase(),
+                regionalId: regionalId || undefined
             }
             if (editItem) {
                 await AdminService.updateEvento(editItem.id, payload)
@@ -137,6 +150,7 @@ export function EnsaiosTab() {
             setTipoResponsavelSecundario(item.tipoResponsavelSecundario || 'REGIONAL')
             setLocalEvento(item.localEvento || '')
             setCidadeEvento(item.cidadeEvento || '')
+            setRegionalId((item as any).regionalId || '')
         } else {
             setEditItem(null)
             setNome('')
@@ -150,6 +164,7 @@ export function EnsaiosTab() {
             setTipoResponsavelSecundario('REGIONAL')
             setLocalEvento('')
             setCidadeEvento('')
+            setRegionalId('')
         }
         setModalOpen(true)
     }
@@ -206,9 +221,16 @@ export function EnsaiosTab() {
                                             </div>
                                             <div className="flex flex-col">
                                                 <span className="font-black text-text uppercase tracking-tight text-sm">{item.nome}</span>
-                                                <div className="flex items-center gap-1.5 opacity-60">
-                                                    <MapPin size={10} className="text-blue-500" />
-                                                    <span className="text-[9px] text-subtext font-black uppercase tracking-tighter">{item.localEvento || 'REGIONAL CCB'}</span>
+                                                <div className="flex items-center gap-2 opacity-60">
+                                                    <div className="flex items-center gap-1.5">
+                                                        <MapPin size={10} className="text-blue-500" />
+                                                        <span className="text-[9px] text-subtext font-black uppercase tracking-tighter">{item.localEvento || 'REGIONAL CCB'}</span>
+                                                    </div>
+                                                    {(item as any).regional && (
+                                                        <span className="bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded text-[8px] font-black uppercase">
+                                                            {(item as any).regional.nome}
+                                                        </span>
+                                                    )}
                                                 </div>
                                             </div>
                                         </div>
@@ -363,6 +385,23 @@ export function EnsaiosTab() {
                                 <label className="label-saas ml-1 flex items-center gap-2"><MapPin size={12} className="text-blue-500" /> Cidade</label>
                                 <input className="input-saas uppercase font-black text-[10px] h-12" value={cidadeEvento} onChange={e => setCidadeEvento(e.target.value.toUpperCase())} placeholder="CIDADE DO EVENTO" />
                             </div>
+
+                            {regionais.length > 0 && (
+                                <div className="md:col-span-2">
+                                    <label className="label-saas ml-1 flex items-center gap-2"><MapIcon size={12} className="text-blue-500" /> Regional Vinculada (Exclusivo SuperAdmin)</label>
+                                    <select
+                                        className="input-saas font-black text-xs h-12"
+                                        value={regionalId}
+                                        onChange={e => setRegionalId(e.target.value)}
+                                    >
+                                        <option value="">(REGIONAL PADRÃO DO USUÁRIO)</option>
+                                        {regionais.map(r => (
+                                            <option key={r.id} value={r.id}>{r.nome}</option>
+                                        ))}
+                                    </select>
+                                    <p className="text-[9px] text-subtext mt-1 ml-1 uppercase font-bold opacity-60">* SuperAdmins podem mover eventos entre regionais. Admins Regionais criam na sua própria regional.</p>
+                                </div>
+                            )}
                         </div>
                     </div>
 

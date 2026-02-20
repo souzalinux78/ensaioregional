@@ -9,7 +9,8 @@ interface AuthenticatedRequest extends FastifyRequest {
     user: {
         userId: string
         tenantId: string
-        role: 'ADMIN' | 'USER'
+        role: string
+        regionalId?: string
     }
 }
 
@@ -35,20 +36,20 @@ export class AdminEnsaioController {
         })
 
         const data = schema.parse(req.body)
-        const result = await service.create(data, req.user.tenantId, req.user.userId)
+        const result = await service.create(data, req.user.tenantId, req.user.userId, req.user.role, req.user.regionalId)
         return reply.status(201).send(result)
     }
 
     async list(request: FastifyRequest, reply: FastifyReply) {
         const req = request as AuthenticatedRequest
-        const result = await service.list(req.user.tenantId)
+        const result = await service.list(req.user.tenantId, req.user.role, req.user.regionalId)
         return reply.send(result)
     }
 
     async get(request: FastifyRequest, reply: FastifyReply) {
         const req = request as AuthenticatedRequest
         const { id } = req.params as { id: string }
-        const result = await service.findById(id, req.user.tenantId)
+        const result = await service.findById(id, req.user.tenantId, req.user.role, req.user.regionalId)
         if (!result) return reply.status(404).send({ message: 'Not found' })
         return reply.send(result)
     }
@@ -76,7 +77,7 @@ export class AdminEnsaioController {
 
         const data = schema.parse(req.body)
         try {
-            const result = await service.update(id, data, req.user.tenantId, req.user.userId)
+            const result = await service.update(id, data, req.user.tenantId, req.user.userId, req.user.role, req.user.regionalId)
             return reply.send(result)
         } catch (e: any) {
             if (e.message === 'Not found') return reply.status(404).send({ message: 'Not found' })
@@ -88,7 +89,7 @@ export class AdminEnsaioController {
         const req = request as AuthenticatedRequest
         const { id } = req.params as { id: string }
         try {
-            await service.delete(id, req.user.tenantId, req.user.userId)
+            await service.delete(id, req.user.tenantId, req.user.userId, req.user.role, req.user.regionalId)
             return reply.status(204).send()
         } catch (e: any) {
             if (e.message === 'Not found') return reply.status(404).send({ message: 'Not found' })

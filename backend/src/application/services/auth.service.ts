@@ -33,7 +33,7 @@ export class AuthService {
 
         // 1. Check if user has access liberated (Must be linked to an event)
         // Admin bypass for safety
-        if (user.role !== 'ADMIN') {
+        if (user.role !== 'SUPERADMIN' && user.role !== 'ADMIN_REGIONAL' && user.role !== 'ADMIN') {
             if (!user.acessoLiberado) {
                 const error = new Error('Usuário não convocado para evento ativo.')
                     ; (error as any).statusCode = 403
@@ -53,6 +53,7 @@ export class AuthService {
                 userId: user.id,
                 tenantId: user.tenantId,
                 role: user.role,
+                regionalId: user.regionalId,
                 ensaioRegionalId: user.ensaioRegionalId,
                 ensaioRegionalNome: user.ensaioRegional?.nome,
                 ensaioRegionalInicio: user.ensaioRegional?.dataHoraInicio,
@@ -126,6 +127,7 @@ export class AuthService {
                     userId: user.id,
                     tenantId: user.tenantId,
                     role: user.role,
+                    regionalId: user.regionalId,
                     ensaioRegionalId: user.ensaioRegionalId,
                     ensaioRegionalNome: user.ensaioRegional?.nome,
                     ensaioRegionalInicio: user.ensaioRegional?.dataHoraInicio,

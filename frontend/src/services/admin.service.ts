@@ -38,9 +38,18 @@ export interface User {
     id: string
     name: string
     email: string
-    role: 'ADMIN' | 'USER'
+    role: string
     ensaioRegionalId?: string
-    ensaioRegional?: { nome: string }
+    regionalId?: string
+    ensaioRegional?: { nome: string; dataEvento: string }
+    regional?: { nome: string }
+}
+
+export interface Regional {
+    id: string
+    nome: string
+    setor?: string
+    ativo: boolean
 }
 
 export interface Stats {
@@ -89,7 +98,7 @@ export const AdminService = {
     },
 
     // Relatorios
-    getStats: (params?: { search?: string, date?: string, eventId?: string }) => api.get<Stats>('/admin/relatorios/stats', { params }),
+    getStats: (params?: { search?: string, date?: string, eventId?: string, regionalId?: string }) => api.get<Stats>('/admin/relatorios/stats', { params }),
     exportCsv: async () => {
         const response = await api.get('/admin/relatorios/export', { responseType: 'blob' })
         const url = window.URL.createObjectURL(new Blob([response.data]))
@@ -145,5 +154,11 @@ export const AdminService = {
     updateUser: (id: string, data: any) => api.patch(`/admin/users/${id}`, data),
     deleteUser: (id: string) => api.delete(`/admin/users/${id}`),
     assignEvento: (id: string, evento_id: string | null) => api.patch(`/admin/users/${id}/evento`, { evento_id }),
-    summonUsers: (ensaioId: string, userIds: string[]) => api.post(`/admin/ensaios/${ensaioId}/summon`, { userIds })
+    summonUsers: (ensaioId: string, userIds: string[]) => api.post(`/admin/ensaios/${ensaioId}/summon`, { userIds }),
+
+    // Regionais
+    getRegionais: () => api.get<Regional[]>('/admin/regionais'),
+    createRegional: (data: { nome: string; setor?: string }) => api.post('/admin/regionais', data),
+    updateRegional: (id: string, data: { nome?: string; setor?: string; ativo?: boolean }) => api.patch(`/admin/regionais/${id}`, data),
+    deleteRegional: (id: string) => api.delete(`/admin/regionais/${id}`)
 }

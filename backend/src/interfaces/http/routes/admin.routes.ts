@@ -5,6 +5,7 @@ import { AdminCidadeController } from '../controllers/admin/cidade.controller'
 import { AdminInstrumentoController } from '../controllers/admin/instrumento.controller'
 import { RelatorioController } from '../controllers/admin/relatorio.controller'
 import { AdminFuncaoController } from '../controllers/admin/funcao.controller'
+import { RegionalController } from '../controllers/admin/regional.controller'
 import { verifyJwt } from '../middlewares/verify-jwt'
 import { roleGuard } from '../middlewares/role.guard'
 
@@ -12,10 +13,11 @@ const ensaioController = new AdminEnsaioController()
 const cidadeController = new AdminCidadeController()
 const instrumentoController = new AdminInstrumentoController()
 const funcaoController = new AdminFuncaoController()
+const regionalController = new RegionalController()
 
 export async function adminRoutes(app: FastifyInstance) {
     app.addHook('preHandler', verifyJwt)
-    app.addHook('preHandler', roleGuard('ADMIN'))
+    app.addHook('preHandler', roleGuard('SUPERADMIN', 'ADMIN_REGIONAL', 'ADMIN'))
 
     // Ensaios
     app.post('/ensaios', ensaioController.create.bind(ensaioController))
@@ -49,4 +51,10 @@ export async function adminRoutes(app: FastifyInstance) {
     app.get('/relatorios/export', relatorioController.exportCsv.bind(relatorioController))
     app.get('/relatorios/:ensaioId/pdf', relatorioController.gerarPdf.bind(relatorioController))
     app.get('/relatorios/:ensaioId/analitico/pdf', relatorioController.gerarAnaliticoPdf.bind(relatorioController))
+
+    // Regionais
+    app.get('/regionais', regionalController.list.bind(regionalController))
+    app.post('/regionais', { preHandler: roleGuard('SUPERADMIN', 'ADMIN') }, regionalController.create.bind(regionalController))
+    app.patch('/regionais/:id', { preHandler: roleGuard('SUPERADMIN', 'ADMIN') }, regionalController.update.bind(regionalController))
+    app.delete('/regionais/:id', { preHandler: roleGuard('SUPERADMIN', 'ADMIN') }, regionalController.delete.bind(regionalController))
 }

@@ -25,8 +25,9 @@ export class AdminUserController {
             name: z.string().min(3),
             email: z.string().email(),
             password: z.string().min(6),
-            role: z.enum(['ADMIN', 'USER']),
-            ensaioRegionalId: z.string().uuid().optional().nullable()
+            role: z.enum(['SUPERADMIN', 'ADMIN_REGIONAL', 'USER']),
+            ensaioRegionalId: z.string().uuid().optional().nullable(),
+            regionalId: z.string().uuid().optional().nullable()
         })
 
         const data = schema.parse(request.body)
@@ -36,9 +37,10 @@ export class AdminUserController {
             const user = await service.create({
                 name: data.name,
                 email: data.email,
-                passwordHash: data.password, // temporary rename for service call
+                passwordHash: data.password,
                 role: data.role,
-                ensaioRegionalId: data.ensaioRegionalId || undefined
+                ensaioRegionalId: data.ensaioRegionalId || undefined,
+                regionalId: data.regionalId || undefined
             }, tenantId)
 
             return reply.status(201).send(user)
@@ -53,8 +55,9 @@ export class AdminUserController {
             name: z.string().min(3).optional(),
             email: z.string().email().optional(),
             password: z.string().min(6).optional(),
-            role: z.enum(['ADMIN', 'USER']).optional(),
-            ensaioRegionalId: z.string().uuid().optional().nullable()
+            role: z.enum(['SUPERADMIN', 'ADMIN_REGIONAL', 'USER']).optional(),
+            ensaioRegionalId: z.string().uuid().optional().nullable(),
+            regionalId: z.string().uuid().optional().nullable()
         })
 
         const data = schema.parse(request.body)
@@ -63,7 +66,8 @@ export class AdminUserController {
         try {
             const user = await service.update(id, {
                 ...data,
-                ensaioRegionalId: data.ensaioRegionalId
+                ensaioRegionalId: data.ensaioRegionalId,
+                regionalId: data.regionalId
             }, tenantId)
             return reply.send(user)
         } catch (e: any) {

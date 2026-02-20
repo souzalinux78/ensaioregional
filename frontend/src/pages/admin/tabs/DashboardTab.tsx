@@ -17,12 +17,17 @@ export function DashboardTab() {
     const [selectedEventId, setSelectedEventId] = useState<string>(() => {
         return localStorage.getItem('dashboard:selectedEvent') || 'all'
     })
+    const [selectedRegionalId, setSelectedRegionalId] = useState<string>('all')
+    const [regionais, setRegionais] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
 
-    const fetchStats = useCallback(async (eventId?: string) => {
+    const fetchStats = useCallback(async (eventId?: string, regionalId?: string) => {
         setLoading(true)
         try {
-            const res = await AdminService.getStats({ eventId: eventId === 'all' ? undefined : eventId })
+            const res = await AdminService.getStats({
+                eventId: eventId === 'all' ? undefined : eventId,
+                regionalId: regionalId === 'all' ? undefined : regionalId
+            })
             setStats(res.data)
         } catch (e) {
             console.error(e)
@@ -40,21 +45,31 @@ export function DashboardTab() {
         }
     }
 
+    const fetchRegionais = async () => {
+        try {
+            const res = await AdminService.getRegionais()
+            setRegionais(res.data)
+        } catch (e) {
+            console.error(e)
+        }
+    }
+
     useEffect(() => {
         fetchEventos()
+        fetchRegionais()
     }, [])
 
     useEffect(() => {
-        fetchStats(selectedEventId)
+        fetchStats(selectedEventId, selectedRegionalId)
         if (selectedEventId === 'all') {
             localStorage.removeItem('dashboard:selectedEvent')
         } else {
             localStorage.setItem('dashboard:selectedEvent', selectedEventId)
         }
-    }, [selectedEventId, fetchStats])
+    }, [selectedEventId, selectedRegionalId, fetchStats])
 
     const handleRefresh = () => {
-        fetchStats(selectedEventId)
+        fetchStats(selectedEventId, selectedRegionalId)
     }
 
     // Metrics are derived from stats
@@ -93,6 +108,27 @@ export function DashboardTab() {
                             <div className="w-1.5 h-1.5 border-r-2 border-b-2 border-current rotate-45" />
                         </div>
                     </div>
+
+                    {regionais.length > 0 && (
+                        <div className="relative group flex-1 sm:min-w-[250px]">
+                            <Filter className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-600 transition-colors" size={16} />
+                            <select
+                                className="input-saas pl-12 h-12 bg-white border-gray-100 font-bold text-[11px] uppercase tracking-widest cursor-pointer appearance-none pr-10 overflow-hidden truncate"
+                                value={selectedRegionalId}
+                                onChange={(e) => setSelectedRegionalId(e.target.value)}
+                            >
+                                <option value="all">🌍 Todas as Regionais</option>
+                                {regionais.map(r => (
+                                    <option key={r.id} value={r.id}>
+                                        🏠 {r.nome}
+                                    </option>
+                                ))}
+                            </select>
+                            <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                                <div className="w-1.5 h-1.5 border-r-2 border-b-2 border-current rotate-45" />
+                            </div>
+                        </div>
+                    )}
                     <button
                         onClick={handleRefresh}
                         className="h-12 w-full sm:w-12 flex items-center justify-center bg-white border border-gray-100 text-slate-400 hover:text-blue-600 hover:border-blue-100 rounded-xl transition-all shadow-sm"

@@ -2,7 +2,7 @@
 import { prisma } from '../database/prisma.client'
 
 export class EnsaioRegionalRepository {
-    async create(data: { nome: string; dataEvento: Date; dataHoraInicio: Date; dataHoraFim: Date; ativo: boolean; anciaoAtendimento?: string; regionalRegente?: string; regionalRegente2?: string; regionalPrincipal?: string; regionalSecundario?: string; tipoResponsavelPrincipal?: string; tipoResponsavelSecundario?: string; dataInicio?: Date; dataFim?: Date; localEvento?: string; cidadeEvento?: string; modoConvocacao?: boolean }, tenantId: string) {
+    async create(data: { nome: string; dataEvento: Date; dataHoraInicio: Date; dataHoraFim: Date; ativo: boolean; anciaoAtendimento?: string; regionalRegente?: string; regionalRegente2?: string; regionalPrincipal?: string; regionalSecundario?: string; tipoResponsavelPrincipal?: string; tipoResponsavelSecundario?: string; dataInicio?: Date; dataFim?: Date; localEvento?: string; cidadeEvento?: string; modoConvocacao?: boolean; regionalId?: string }, tenantId: string) {
         return prisma.ensaioRegional.create({
             data: {
                 nome: data.nome,
@@ -23,40 +23,48 @@ export class EnsaioRegionalRepository {
                 cidadeEvento: data.cidadeEvento,
                 modoConvocacao: data.modoConvocacao ?? false,
                 tenantId,
+                regionalId: data.regionalId
             },
         })
     }
 
-    async findById(id: string, tenantId: string) {
+    async findById(id: string, tenantId: string, regionalId?: string) {
         return prisma.ensaioRegional.findFirst({
             where: {
                 id,
                 tenantId,
+                regionalId,
                 deletedAt: null,
             },
             include: {
-                _count: { select: { users: true } }
+                _count: { select: { users: true } },
+                regional: true
             }
         })
     }
 
-    async findDuplicate(nome: string, dataEvento: Date, tenantId: string, excludeId?: string) {
+    async findDuplicate(nome: string, dataEvento: Date, tenantId: string, excludeId?: string, regionalId?: string) {
         return prisma.ensaioRegional.findFirst({
             where: {
                 tenantId,
                 nome,
                 dataEvento,
+                regionalId,
                 deletedAt: null,
                 id: excludeId ? { not: excludeId } : undefined
             }
         })
     }
 
-    async list(tenantId: string) {
+    async list(tenantId: string, regionalId?: string) {
         return prisma.ensaioRegional.findMany({
             where: {
                 tenantId,
+                regionalId,
                 deletedAt: null,
+            },
+            include: {
+                regional: true
             },
             orderBy: {
                 dataEvento: 'desc',
@@ -64,9 +72,9 @@ export class EnsaioRegionalRepository {
         })
     }
 
-    async update(id: string, data: Partial<{ nome: string; dataEvento: Date; dataHoraInicio: Date; dataHoraFim: Date; ativo: boolean; anciaoAtendimento: string; regionalRegente: string; regionalRegente2: string; regionalPrincipal: string; regionalSecundario: string; tipoResponsavelPrincipal: string; tipoResponsavelSecundario: string; dataInicio: Date; dataFim: Date; localEvento: string; cidadeEvento: string; modoConvocacao: boolean }>, tenantId: string) {
+    async update(id: string, data: Partial<{ nome: string; dataEvento: Date; dataHoraInicio: Date; dataHoraFim: Date; ativo: boolean; anciaoAtendimento: string; regionalRegente: string; regionalRegente2: string; regionalPrincipal: string; regionalSecundario: string; tipoResponsavelPrincipal: string; tipoResponsavelSecundario: string; dataInicio: Date; dataFim: Date; localEvento: string; cidadeEvento: string; modoConvocacao: boolean; regionalId: string }>, tenantId: string, regionalId?: string) {
         // Ensure existence and ownership
-        const exists = await this.findById(id, tenantId)
+        const exists = await this.findById(id, tenantId, regionalId)
         if (!exists) return null
 
         return prisma.ensaioRegional.update({
@@ -75,8 +83,8 @@ export class EnsaioRegionalRepository {
         })
     }
 
-    async softDelete(id: string, tenantId: string) {
-        const exists = await this.findById(id, tenantId)
+    async softDelete(id: string, tenantId: string, regionalId?: string) {
+        const exists = await this.findById(id, tenantId, regionalId)
         if (!exists) return null
 
         return prisma.ensaioRegional.update({

@@ -16,17 +16,21 @@ export function UsersTab() {
     const [name, setName] = useState('')
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
-    const [role, setRole] = useState<'ADMIN' | 'USER'>('USER')
+    const [role, setRole] = useState<string>('USER')
     const [ensaioRegionalId, setEnsaioRegionalId] = useState<string>('')
+    const [regionalId, setRegionalId] = useState<string>('')
+    const [regionais, setRegionais] = useState<any[]>([])
 
     const fetchData = async () => {
         try {
-            const [usersRes, eventosRes] = await Promise.all([
+            const [usersRes, eventosRes, regionaisRes] = await Promise.all([
                 AdminService.getUsers(),
-                AdminService.getEventos()
+                AdminService.getEventos(),
+                AdminService.getRegionais()
             ])
             setUsers(usersRes.data)
             setEventos(eventosRes.data)
+            setRegionais(regionaisRes.data)
         } catch (e) {
             console.error(e)
         } finally {
@@ -41,12 +45,12 @@ export function UsersTab() {
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault()
         try {
-            // Se ensaioRegionalId for vazio, enviamos null para desvincular
             const data: any = {
                 name,
                 email,
                 role,
-                ensaioRegionalId: ensaioRegionalId === '' ? null : ensaioRegionalId
+                ensaioRegionalId: ensaioRegionalId === '' ? null : ensaioRegionalId,
+                regionalId: regionalId === '' ? null : regionalId
             }
             if (password) data.password = password
 
@@ -96,6 +100,7 @@ export function UsersTab() {
             setEmail(item.email)
             setRole(item.role)
             setEnsaioRegionalId(item.ensaioRegionalId || '')
+            setRegionalId(item.regionalId || '')
             setPassword('')
         } else {
             setEditItem(null)
@@ -103,6 +108,7 @@ export function UsersTab() {
             setEmail('')
             setRole('USER')
             setEnsaioRegionalId('')
+            setRegionalId('')
             setPassword('')
         }
         setModalOpen(true)
@@ -153,11 +159,18 @@ export function UsersTab() {
                                         </div>
                                     </td>
                                     <td>
-                                        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-[9px] font-black tracking-widest uppercase ${item.role === 'ADMIN' ? 'bg-purple-50 text-purple-600' : 'bg-blue-50 text-blue-600'
-                                            }`}>
-                                            {item.role === 'ADMIN' ? <Shield size={10} /> : <UserIcon size={10} />}
-                                            {item.role}
-                                        </span>
+                                        <div className="flex flex-col gap-1">
+                                            <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-[9px] font-black tracking-widest uppercase ${item.role.includes('ADMIN') ? 'bg-purple-50 text-purple-600' : 'bg-blue-50 text-blue-600'
+                                                }`}>
+                                                {(item.role === 'SUPERADMIN' || item.role === 'ADMIN') ? <Shield size={10} /> : <UserIcon size={10} />}
+                                                {item.role === 'ADMIN' ? 'SUPERADMIN' : item.role}
+                                            </span>
+                                            {item.regional?.nome && (
+                                                <span className="text-[8px] font-black text-blue-500 uppercase ml-1">
+                                                    @{item.regional.nome}
+                                                </span>
+                                            )}
+                                        </div>
                                     </td>
                                     <td>
                                         {item.ensaioRegional?.nome ? (
@@ -228,11 +241,27 @@ export function UsersTab() {
                             <select
                                 className="input-saas font-black uppercase text-[10px] h-12"
                                 value={role}
-                                onChange={e => setRole(e.target.value as any)}
+                                onChange={e => setRole(e.target.value)}
                             >
                                 <option value="USER">USUÁRIO COMUM</option>
-                                <option value="ADMIN">ADMINISTRADOR</option>
+                                <option value="ADMIN_REGIONAL">ADMIN REGIONAL</option>
+                                <option value="SUPERADMIN">SUPERADMIN</option>
                             </select>
+                        </div>
+                        <div>
+                            <label className="label-saas ml-1">Regional Associada</label>
+                            <select
+                                className="input-saas font-black uppercase text-[10px] h-12"
+                                value={regionalId}
+                                onChange={e => setRegionalId(e.target.value)}
+                                required={role === 'ADMIN_REGIONAL'}
+                            >
+                                <option value="">NENHUMA (ACESSO GLOBAL)</option>
+                                {regionais.map(r => (
+                                    <option key={r.id} value={r.id}>{r.nome}</option>
+                                ))}
+                            </select>
+                            <p className="text-[8px] font-bold text-subtext mt-1 ml-1 uppercase opacity-60">* Obrigatório para Admin Regional. SuperAdmins ignoram este filtro.</p>
                         </div>
                         <div>
                             <label className="label-saas ml-1">Vínculo com Evento</label>

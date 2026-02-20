@@ -21,6 +21,7 @@ model Tenant {
   auditLogs        AuditLog[]
   refreshTokens    RefreshToken[]
   eventoUsuarios   EventoUsuario[]
+  regionais        Regional[]
 
   @@map("tenants")
 }
@@ -32,12 +33,14 @@ model User {
   email            String
   passwordHash     String    @map("password_hash")
   role             Role      @default(USER)
+  regionalId       String?   @map("regional_id")
   ensaioRegionalId String?   @map("ensaio_regional_id")
   acessoLiberado   Boolean   @default(false) @map("acesso_liberado")
   createdAt        DateTime  @default(now()) @map("created_at")
   deletedAt        DateTime? @map("deleted_at")
 
   tenant         Tenant          @relation(fields: [tenantId], references: [id])
+  regional       Regional?       @relation(fields: [regionalId], references: [id])
   ensaioRegional EnsaioRegional? @relation(fields: [ensaioRegionalId], references: [id])
 
   registros     RegistroPresenca[]
@@ -50,13 +53,31 @@ model User {
 }
 
 enum Role {
+  SUPERADMIN
+  ADMIN_REGIONAL
   ADMIN
   USER
+}
+
+model Regional {
+  id        String   @id @default(uuid())
+  tenantId  String   @map("tenant_id")
+  nome      String
+  setor     String?
+  ativo     Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  tenant           Tenant           @relation(fields: [tenantId], references: [id])
+  users            User[]
+  ensaiosRegionais EnsaioRegional[]
+
+  @@map("regionais")
 }
 
 model EnsaioRegional {
   id                String    @id @default(uuid())
   tenantId          String    @map("tenant_id")
+  regionalId        String?   @map("regional_id")
   nome              String
   dataEvento        DateTime  @map("data_evento")
   dataHoraInicio    DateTime  @map("data_hora_inicio")
@@ -78,6 +99,7 @@ model EnsaioRegional {
   deletedAt         DateTime? @map("deleted_at")
 
   tenant    Tenant             @relation(fields: [tenantId], references: [id])
+  regional  Regional?          @relation(fields: [regionalId], references: [id])
   users     User[]
   registros RegistroPresenca[]
   usuariosConvocados EventoUsuario[]

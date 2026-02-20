@@ -27,7 +27,7 @@ export class AdminUserService {
         })
     }
 
-    async create(data: { name: string, email: string, passwordHash: string, role: 'ADMIN' | 'USER', ensaioRegionalId?: string }, tenantId: string) {
+    async create(data: { name: string, email: string, passwordHash: string, role: string, ensaioRegionalId?: string, regionalId?: string }, tenantId: string) {
         // Check for existing user in tenant
         const existing = await prisma.user.findUnique({
             where: {
@@ -55,15 +55,16 @@ export class AdminUserService {
                 name: data.name,
                 email: data.email,
                 passwordHash,
-                role: data.role,
+                role: data.role as any,
                 tenantId,
                 ensaioRegionalId: data.ensaioRegionalId,
+                regionalId: data.regionalId,
                 acessoLiberado: !!data.ensaioRegionalId
             }
         })
     }
 
-    async update(id: string, data: { name?: string, email?: string, password?: string, role?: 'ADMIN' | 'USER', ensaioRegionalId?: string | null }, tenantId: string) {
+    async update(id: string, data: { name?: string, email?: string, password?: string, role?: string, ensaioRegionalId?: string | null, regionalId?: string | null }, tenantId: string) {
         const user = await this.getById(id, tenantId)
         if (!user) throw new Error('Usuário não encontrado.')
 
@@ -79,7 +80,8 @@ export class AdminUserService {
             name: data.name,
             email: data.email,
             role: data.role,
-            ensaioRegionalId: data.ensaioRegionalId
+            ensaioRegionalId: data.ensaioRegionalId,
+            regionalId: data.regionalId
         }
 
         if (data.ensaioRegionalId !== undefined) {
@@ -91,12 +93,16 @@ export class AdminUserService {
             updateData.passwordHash = await bcrypt.hash(data.password, salt)
         }
 
-        // Security: Prevent removing last ADMIN
-        if (data.role === 'USER' && user.role === 'ADMIN') {
+        // Security: Prevent removing last SUPERADMIN
+        if ((data.role === 'USER' || data.role === 'ADMIN_REGIONAL') && (user.role === 'SUPERADMIN' || user.role === 'ADMIN')) {
             const adminCount = await prisma.user.count({
-                where: { tenantId, role: 'ADMIN', deletedAt: null }
+                where: {
+                    tenantId,
+                    role: { in: ['SUPERADMIN', 'ADMIN'] },
+                    deletedAt: null
+                }
             })
-            if (adminCount <= 1) throw new Error('Não é possível remover o último administrador do tenant.')
+            if (adminCount <= 1) throw new Error('Não é possível remover o último administrador global do tenant.')
         }
 
         return prisma.user.update({
@@ -111,11 +117,15 @@ export class AdminUserService {
         const user = await this.getById(id, tenantId)
         if (!user) throw new Error('Usuário não encontrado.')
 
-        if (user.role === 'ADMIN') {
+        if (user.role === 'SUPERADMIN' || user.role === 'ADMIN') {
             const adminCount = await prisma.user.count({
-                where: { tenantId, role: 'ADMIN', deletedAt: null }
+                where: {
+                    tenantId,
+                    role: { in: ['SUPERADMIN', 'ADMIN'] },
+                    deletedAt: null
+                }
             })
-            if (adminCount <= 1) throw new Error('Não é possível excluir o último administrador do tenant.')
+            if (adminCount <= 1) throw new Error('Não é possível excluir o último administrador global do tenant.')
         }
 
         return prisma.user.update({

@@ -3,8 +3,13 @@ import { prisma } from '../../infra/database/prisma.client'
 import { stringify } from 'csv-stringify/sync'
 
 export class RelatorioService {
-    async getStats(tenantId: string, search?: string, date?: string, eventId?: string) {
+    async getStats(tenantId: string, search?: string, date?: string, eventId?: string, userRole?: string, userRegionalId?: string) {
         const metricsWhere: any = { tenantId }
+
+        if (userRole === 'ADMIN_REGIONAL') {
+            metricsWhere.ensaioRegional = { regionalId: userRegionalId }
+        }
+
         if (eventId) {
             metricsWhere.ensaioRegionalId = eventId
         }
@@ -87,6 +92,10 @@ export class RelatorioService {
             deletedAt: null
         }
 
+        if (userRole === 'ADMIN_REGIONAL') {
+            where.regionalId = userRegionalId
+        }
+
         if (search) {
             where.nome = { contains: search }
         }
@@ -134,9 +143,14 @@ export class RelatorioService {
         }
     }
 
-    async exportCsv(tenantId: string) {
+    async exportCsv(tenantId: string, userRole?: string, userRegionalId?: string) {
+        const where: any = { tenantId }
+        if (userRole === 'ADMIN_REGIONAL') {
+            where.ensaioRegional = { regionalId: userRegionalId }
+        }
+
         const registros = await prisma.registroPresenca.findMany({
-            where: { tenantId },
+            where,
             include: {
                 cidade: true,
                 instrumento: true,

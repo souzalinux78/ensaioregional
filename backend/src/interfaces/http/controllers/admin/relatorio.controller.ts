@@ -11,14 +11,14 @@ const pdfService = new PdfRelatorioService()
 export class RelatorioController {
     async getStats(request: FastifyRequest, reply: FastifyReply) {
         const { search, date, eventId } = request.query as { search?: string, date?: string, eventId?: string }
-        const tenantId = (request as any).user.tenantId
-        const stats = await service.getStats(tenantId, search, date, eventId)
+        const { tenantId, role, regionalId } = (request as any).user
+        const stats = await service.getStats(tenantId, search, date, eventId, role, regionalId)
         return reply.send(stats)
     }
 
     async exportCsv(request: FastifyRequest, reply: FastifyReply) {
-        const tenantId = (request as any).user.tenantId
-        const csv = await service.exportCsv(tenantId)
+        const { tenantId, role, regionalId } = (request as any).user
+        const csv = await service.exportCsv(tenantId, role, regionalId)
 
         reply.header('Content-Type', 'text/csv')
         reply.header('Content-Disposition', 'attachment; filename="relatorio_presencas.csv"')
@@ -26,13 +26,22 @@ export class RelatorioController {
     }
 
     async gerarPdf(request: FastifyRequest, reply: FastifyReply) {
-        const tenantId = (request as any).user.tenantId
+        const { tenantId, role, regionalId } = (request as any).user
         const { ensaioId } = request.params as { ensaioId: string }
 
         try {
+            const where: any = { id: ensaioId, tenantId }
+            if (role === 'ADMIN_REGIONAL') {
+                where.regionalId = regionalId
+            }
+
             const ensaio = await prisma.ensaioRegional.findFirst({
-                where: { id: ensaioId, tenantId }
+                where
             })
+
+            if (!ensaio) {
+                return reply.status(404).send({ message: 'Evento não encontrado ou acesso negado' })
+            }
             const pdfBuffer = await pdfService.gerarPdf(ensaioId, tenantId)
 
             const localidade = ensaio?.nome || 'Regional'
@@ -51,10 +60,23 @@ export class RelatorioController {
     }
 
     async gerarAnaliticoPdf(request: FastifyRequest, reply: FastifyReply) {
-        const tenantId = (request as any).user.tenantId
+        const { tenantId, role, regionalId } = (request as any).user
         const { ensaioId } = request.params as { ensaioId: string }
 
         try {
+            const where: any = { id: ensaioId, tenantId }
+            if (role === 'ADMIN_REGIONAL') {
+                where.regionalId = regionalId
+            }
+
+            const ensaio = await prisma.ensaioRegional.findFirst({
+                where
+            })
+
+            if (!ensaio) {
+                return reply.status(404).send({ message: 'Evento não encontrado ou acesso negado' })
+            }
+
             const pdfBuffer = await pdfService.gerarAnaliticoPdf(ensaioId, tenantId)
             const filename = `RELATORIO_ANALITICO_${dayjs().format('YYYYMMDD')}.pdf`
 

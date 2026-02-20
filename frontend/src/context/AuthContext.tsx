@@ -44,6 +44,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 name: decoded.name || 'Usuário',
                 role: decoded.role,
                 tenantId: decoded.tenantId,
+                regionalId: decoded.regionalId,
                 ensaioRegionalId: decoded.ensaioRegionalId,
                 ensaioRegionalNome: decoded.ensaioRegionalNome,
                 ensaioRegionalInicio: decoded.ensaioRegionalInicio,

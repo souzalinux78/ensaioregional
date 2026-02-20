@@ -19,6 +19,7 @@ export async function verifyJwt(request: FastifyRequest, reply: FastifyReply) {
                 userId: decoded.userId,
                 tenantId: decoded.tenantId,
                 role: decoded.role,
+                regionalId: decoded.regionalId,
             }
     } catch (err) {
         await reply.status(401).send({ message: 'Invalid token' })

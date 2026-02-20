@@ -12,14 +12,10 @@ export function PrivateRoute({ children, role }: { children: React.ReactNode, ro
     }
 
     if (role && user.role !== role) {
-        // If Admin tries to access User route, maybe allow? 
-        // Spec says ADMIN accesses /admin, USER accesses /presenca.
-        // Presenca is strictly USER role in backend route? 
-        // Backend route: app.addHook('preHandler', roleGuard('USER'))
-        // If Admin has role 'ADMIN', roleGuard('USER') might fail if strict equality.
-        // RoleGuard in backend checks: if (role !== requiredRole).
-        // So Admin cannot access User routes unless we change backend logic.
-        // For now, strict check.
+        // Allow SUPERADMIN and ADMIN_REGIONAL to access ADMIN routes
+        if (role === 'ADMIN' && (user.role === 'SUPERADMIN' || user.role === 'ADMIN_REGIONAL')) {
+            return <>{children}</>
+        }
         return <Navigate to="/login" replace />
     }
 
