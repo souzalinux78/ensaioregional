@@ -48,6 +48,7 @@ export async function adminRoutes(app: FastifyInstance) {
     // Relatorios
     const relatorioController = new RelatorioController()
     app.get('/relatorios/stats', relatorioController.getStats.bind(relatorioController))
+    app.get('/relatorios/executivo', { preHandler: roleGuard('SUPERADMIN', 'ADMIN') }, relatorioController.getExecutiveStats.bind(relatorioController))
     app.get('/relatorios/export', relatorioController.exportCsv.bind(relatorioController))
     app.get('/relatorios/:ensaioId/pdf', relatorioController.gerarPdf.bind(relatorioController))
     app.get('/relatorios/:ensaioId/analitico/pdf', relatorioController.gerarAnaliticoPdf.bind(relatorioController))

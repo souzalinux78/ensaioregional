@@ -16,6 +16,15 @@ export class RelatorioController {
         return reply.send(stats)
     }
 
+    async getExecutiveStats(request: FastifyRequest, reply: FastifyReply) {
+        const { tenantId, role } = (request as any).user
+        if (role !== 'SUPERADMIN' && role !== 'ADMIN') {
+            return reply.status(403).send({ message: 'Acesso restrito a SuperAdmin' })
+        }
+        const stats = await service.getExecutiveStats(tenantId)
+        return reply.send(stats)
+    }
+
     async exportCsv(request: FastifyRequest, reply: FastifyReply) {
         const { tenantId, role, regionalId } = (request as any).user
         const csv = await service.exportCsv(tenantId, role, regionalId)

@@ -64,6 +64,17 @@ export interface Stats {
     byEvento: { id: string, nome: string, data: string, total: number }[]
 }
 
+export interface ExecutiveStats {
+    totalRegionais: number
+    totalEventos: number
+    totalPresencas: number
+    totalUsuarios: number
+    presencasPorRegional: { nome: string, total: number }[]
+    eventosPorRegional: { nome: string, total: number }[]
+    rankingRegionais: { nome: string, total: number }[]
+    evolucaoMensal: { mes: string, total: number }[]
+}
+
 export const AdminService = {
     // Eventos Musicais CCB
     getEventos: () => api.get<Evento[]>('/admin/ensaios'),
@@ -99,6 +110,7 @@ export const AdminService = {
 
     // Relatorios
     getStats: (params?: { search?: string, date?: string, eventId?: string, regionalId?: string }) => api.get<Stats>('/admin/relatorios/stats', { params }),
+    getExecutiveStats: () => api.get<ExecutiveStats>('/admin/relatorios/executivo'),
     exportCsv: async () => {
         const response = await api.get('/admin/relatorios/export', { responseType: 'blob' })
         const url = window.URL.createObjectURL(new Blob([response.data]))

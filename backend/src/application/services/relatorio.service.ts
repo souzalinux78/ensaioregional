@@ -174,4 +174,71 @@ export class RelatorioService {
 
         return stringify(data, { header: true })
     }
+    async getExecutiveStats(tenantId: string) {
+        const [totalRegionais, totalEventos, totalPresencas, totalUsuarios] = await Promise.all([
+            prisma.regional.count({ where: { tenantId } }),
+            prisma.ensaioRegional.count({ where: { tenantId, deletedAt: null } }),
+            prisma.registroPresenca.count({ where: { tenantId } }),
+            prisma.user.count({ where: { tenantId, deletedAt: null } })
+        ])
+
+        const regionaisData = await prisma.regional.findMany({
+            where: { tenantId },
+            select: {
+                nome: true,
+                _count: {
+                    select: { ensaiosRegionais: true }
+                },
+                ensaiosRegionais: {
+                    where: { deletedAt: null },
+                    select: {
+                        _count: {
+                            select: { registros: true }
+                        }
+                    }
+                }
+            }
+        })
+
+        const presencasPorRegional = regionaisData.map(r => ({
+            nome: r.nome,
+            total: r.ensaiosRegionais.reduce((acc, curr) => acc + curr._count.registros, 0)
+        }))
+
+        const eventosPorRegional = regionaisData.map(r => ({
+            nome: r.nome,
+            total: r._count.ensaiosRegionais
+        }))
+
+        const rankingRegionais = [...presencasPorRegional].sort((a, b) => b.total - a.total)
+
+        // Monthly Evolution (Last 12 months)
+        // Grouping in JS for maximum compatibility between DB providers (MySQL/SQLite/PG)
+        const presencasDatas = await prisma.registroPresenca.findMany({
+            where: { tenantId },
+            select: { createdAt: true }
+        })
+
+        const evolucaoMap: Record<string, number> = {}
+        presencasDatas.forEach(p => {
+            const mes = p.createdAt.toISOString().substring(0, 7) // YYYY-MM
+            evolucaoMap[mes] = (evolucaoMap[mes] || 0) + 1
+        })
+
+        const evolucaoMensal = Object.entries(evolucaoMap)
+            .map(([mes, total]) => ({ mes, total }))
+            .sort((a, b) => a.mes.localeCompare(b.mes))
+            .slice(-12)
+
+        return {
+            totalRegionais,
+            totalEventos,
+            totalPresencas,
+            totalUsuarios,
+            presencasPorRegional,
+            eventosPorRegional,
+            rankingRegionais,
+            evolucaoMensal
+        }
+    }
 }

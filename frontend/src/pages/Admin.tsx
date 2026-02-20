@@ -7,6 +7,7 @@ import { UsersTab } from './admin/tabs/UsersTab'
 import { RelatoriosTab } from './admin/tabs/RelatoriosTab'
 import { DashboardTab } from './admin/tabs/DashboardTab'
 import { RegionaisTab } from './admin/tabs/RegionaisTab'
+import { ExecutivoTab } from './admin/tabs/ExecutivoTab'
 import { MapPin, Music } from 'lucide-react'
 import { useState } from 'react'
 
@@ -49,6 +50,7 @@ export function AdminPage() {
     return (
         <Routes>
             <Route path="/" element={<DashboardTab />} />
+            <Route path="/executivo" element={<ExecutivoTab />} />
             <Route path="/eventos" element={<EnsaiosTab />} />
             <Route path="/relatorios" element={<RelatoriosTab />} />
             <Route path="/usuarios" element={<UsersTab />} />

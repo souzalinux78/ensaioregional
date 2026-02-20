@@ -14,7 +14,8 @@ import {
     Users,
     Menu,
     X,
-    MapPin
+    MapPin,
+    TrendingUp
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { PWAInstallPrompt } from './PWAInstallPrompt'
@@ -34,6 +35,7 @@ export function MainLayout({ children }: MainLayoutProps) {
 
     const adminMenu = [
         { title: 'Início', icon: LayoutDashboard, path: '/admin' },
+        ...(isSuperAdmin ? [{ title: 'Executivo', icon: TrendingUp, path: '/admin/executivo' }] : []),
         { title: 'Eventos', icon: CalendarDays, path: '/admin/eventos' },
         { title: 'Relatórios', icon: BarChart3, path: '/admin/relatorios' },
         { title: 'Usuários', icon: Users, path: '/admin/usuarios' },
