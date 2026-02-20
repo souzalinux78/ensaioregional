@@ -5,15 +5,8 @@ import { parseCidade } from '../shared/utils/normalization'
 async function migrateCidades() {
     console.log('>>> Iniciando migração de cidades...')
 
-    const cidades = await prisma.cidade.findMany({
-        where: {
-            OR: [
-                { nomeCidade: null },
-                { nomeBairro: null },
-                { nomeExibicao: null }
-            ]
-        }
-    })
+    // Forçar atualização de todas as cidades para garantir consistência
+    const cidades = await prisma.cidade.findMany({})
 
     console.log(`>>> Encontradas ${cidades.length} cidades para atualizar.`)
 
