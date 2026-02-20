@@ -12,8 +12,8 @@ export function PrivateRoute({ children, role }: { children: React.ReactNode, ro
     }
 
     if (role && user.role !== role) {
-        // Allow SUPERADMIN and ADMIN_REGIONAL to access ADMIN routes
-        if (role === 'ADMIN' && (user.role === 'SUPERADMIN' || user.role === 'ADMIN_REGIONAL')) {
+        // Allow SUPERADMIN and ADMIN_REGIONAL to access ALL routes
+        if (user.role === 'SUPERADMIN' || user.role === 'ADMIN_REGIONAL' || user.role === 'ADMIN') {
             return <>{children}</>
         }
         return <Navigate to="/login" replace />

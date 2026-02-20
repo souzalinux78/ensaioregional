@@ -31,7 +31,7 @@ export function LoginPage() {
 
             login(data.accessToken)
 
-            if (decoded.role === 'ADMIN') {
+            if (decoded.role === 'ADMIN' || decoded.role === 'SUPERADMIN' || decoded.role === 'ADMIN_REGIONAL') {
                 navigate('/admin')
             } else {
                 navigate('/presenca')
