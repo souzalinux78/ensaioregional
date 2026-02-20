@@ -12,6 +12,7 @@ interface User {
     ensaioRegionalNome?: string
     ensaioRegionalInicio?: string
     ensaioRegionalFim?: string
+    regionalId?: string
 }
 
 interface AuthContextType {
