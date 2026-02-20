@@ -21,8 +21,6 @@ import {
     CartesianGrid,
     Tooltip,
     ResponsiveContainer,
-    LineChart,
-    Line,
     Cell,
     Legend
 } from 'recharts'
@@ -230,8 +228,8 @@ export function BITab() {
                                     <div className="flex justify-between items-start">
                                         <div className="flex items-center gap-3">
                                             <span className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-black ${i === 0 ? 'bg-yellow-400 text-white shadow-lg shadow-yellow-200' :
-                                                    i === 1 ? 'bg-slate-300 text-white shadow-lg shadow-slate-100' :
-                                                        i === 2 ? 'bg-orange-400 text-white shadow-lg shadow-orange-100' : 'bg-white text-subtext'
+                                                i === 1 ? 'bg-slate-300 text-white shadow-lg shadow-slate-100' :
+                                                    i === 2 ? 'bg-orange-400 text-white shadow-lg shadow-orange-100' : 'bg-white text-subtext'
                                                 }`}>
                                                 {i + 1}
                                             </span>
