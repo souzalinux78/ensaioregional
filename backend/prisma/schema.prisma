@@ -67,6 +67,8 @@ model EnsaioRegional {
   regionalRegente2  String?   @map("regional_regente_2")
   regionalPrincipal String?   @map("regional_principal")
   regionalSecundario String?  @map("regional_secundario")
+  tipoResponsavelPrincipal String @default("REGIONAL") @map("tipo_responsavel_principal")
+  tipoResponsavelSecundario String @default("REGIONAL") @map("tipo_responsavel_secundario")
   dataInicio        DateTime? @map("data_inicio")
   dataFim           DateTime? @map("data_fim")
   localEvento       String?   @map("local_evento")

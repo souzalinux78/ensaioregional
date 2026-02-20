@@ -11,6 +11,8 @@ export interface Evento {
     regionalRegente2?: string
     regionalPrincipal?: string
     regionalSecundario?: string
+    tipoResponsavelPrincipal?: string
+    tipoResponsavelSecundario?: string
     dataHoraInicio: string
     dataHoraFim: string
     localEvento?: string

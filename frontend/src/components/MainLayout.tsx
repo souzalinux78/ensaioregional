@@ -152,7 +152,7 @@ export function MainLayout({ children }: MainLayoutProps) {
                 </header>
 
                 {/* Page Content */}
-                <div className="p-4 md:p-8 lg:p-12 w-full max-w-7xl mx-auto flex-1">
+                <div className="px-0 md:p-8 lg:p-12 w-full max-w-7xl mx-auto flex-1">
                     <div className="animate-fade-in h-full">
                         {children}
                     </div>

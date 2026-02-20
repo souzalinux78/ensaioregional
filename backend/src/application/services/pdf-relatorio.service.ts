@@ -159,7 +159,8 @@ export class PdfRelatorioService {
 
             doc.font('Helvetica').fontSize(8).text('Ancião', startX + 2, y + 14)
             doc.font('Helvetica-Bold').fontSize(9).text(ensaio.anciaoAtendimento || '', startX + 50, y + 14)
-            doc.font('Helvetica').fontSize(8).text('Regional', startX + 282, y + 14)
+            const labelPrincipal = (ensaio as any).tipoResponsavelPrincipal === 'LOCAL' ? 'Local' : 'Regional'
+            doc.font('Helvetica').fontSize(8).text(labelPrincipal, startX + 282, y + 14)
             const reg1 = (ensaio as any).regionalPrincipal || ensaio.regionalRegente || ''
             doc.font('Helvetica-Bold').fontSize(9).text(reg1, startX + 335, y + 14)
             y += 35

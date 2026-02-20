@@ -23,6 +23,8 @@ export function EnsaiosTab() {
     const [anciaoAtendimento, setAnciaoAtendimento] = useState('')
     const [regionalPrincipal, setRegionalPrincipal] = useState('')
     const [regionalSecundario, setRegionalSecundario] = useState('')
+    const [tipoResponsavelPrincipal, setTipoResponsavelPrincipal] = useState('REGIONAL')
+    const [tipoResponsavelSecundario, setTipoResponsavelSecundario] = useState('REGIONAL')
     const [localEvento, setLocalEvento] = useState('')
     const [cidadeEvento, setCidadeEvento] = useState('')
 
@@ -82,6 +84,8 @@ export function EnsaiosTab() {
                 anciaoAtendimento: anciaoAtendimento.trim().toUpperCase(),
                 regionalPrincipal: regionalPrincipal.trim().toUpperCase(),
                 regionalSecundario: regionalSecundario.trim().toUpperCase() || undefined,
+                tipoResponsavelPrincipal: tipoResponsavelPrincipal,
+                tipoResponsavelSecundario: tipoResponsavelSecundario,
                 localEvento: localEvento.trim().toUpperCase(),
                 cidadeEvento: cidadeEvento.trim().toUpperCase()
             }
@@ -129,6 +133,8 @@ export function EnsaiosTab() {
             setAnciaoAtendimento(item.anciaoAtendimento || '')
             setRegionalPrincipal(item.regionalPrincipal || item.regionalRegente || '')
             setRegionalSecundario(item.regionalSecundario || item.regionalRegente2 || '')
+            setTipoResponsavelPrincipal(item.tipoResponsavelPrincipal || 'REGIONAL')
+            setTipoResponsavelSecundario(item.tipoResponsavelSecundario || 'REGIONAL')
             setLocalEvento(item.localEvento || '')
             setCidadeEvento(item.cidadeEvento || '')
         } else {
@@ -140,6 +146,8 @@ export function EnsaiosTab() {
             setAnciaoAtendimento('')
             setRegionalPrincipal('')
             setRegionalSecundario('')
+            setTipoResponsavelPrincipal('REGIONAL')
+            setTipoResponsavelSecundario('REGIONAL')
             setLocalEvento('')
             setCidadeEvento('')
         }
@@ -306,23 +314,43 @@ export function EnsaiosTab() {
 
                         <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label className="label-saas ml-1 flex items-center gap-2"><MapIcon size={12} className="text-blue-500" /> Regional Principal *</label>
-                                <input
-                                    className="input-saas uppercase font-black text-[10px] h-12"
-                                    value={regionalPrincipal}
-                                    onChange={e => setRegionalPrincipal(e.target.value.toUpperCase())}
-                                    placeholder="EX: SETOR SUL"
-                                    required
-                                />
+                                <label className="label-saas ml-1 flex items-center gap-2"><MapIcon size={12} className="text-blue-500" /> Responsável Principal *</label>
+                                <div className="flex gap-2">
+                                    <select
+                                        className="input-saas w-32 shrink-0 font-black text-[10px] h-12 px-2"
+                                        value={tipoResponsavelPrincipal}
+                                        onChange={e => setTipoResponsavelPrincipal(e.target.value)}
+                                    >
+                                        <option value="REGIONAL">REGIONAL</option>
+                                        <option value="LOCAL">LOCAL</option>
+                                    </select>
+                                    <input
+                                        className="input-saas flex-1 uppercase font-black text-[10px] h-12"
+                                        value={regionalPrincipal}
+                                        onChange={e => setRegionalPrincipal(e.target.value.toUpperCase())}
+                                        placeholder="NOME"
+                                        required
+                                    />
+                                </div>
                             </div>
                             <div>
-                                <label className="label-saas ml-1 flex items-center gap-2"><MapIcon size={12} className="text-blue-500" /> Regional Secundário</label>
-                                <input
-                                    className="input-saas uppercase font-black text-[10px] h-12"
-                                    value={regionalSecundario}
-                                    onChange={e => setRegionalSecundario(e.target.value.toUpperCase())}
-                                    placeholder="OPCIONAL"
-                                />
+                                <label className="label-saas ml-1 flex items-center gap-2"><MapIcon size={12} className="text-blue-500" /> Responsável Secundário</label>
+                                <div className="flex gap-2">
+                                    <select
+                                        className="input-saas w-32 shrink-0 font-black text-[10px] h-12 px-2"
+                                        value={tipoResponsavelSecundario}
+                                        onChange={e => setTipoResponsavelSecundario(e.target.value)}
+                                    >
+                                        <option value="REGIONAL">REGIONAL</option>
+                                        <option value="LOCAL">LOCAL</option>
+                                    </select>
+                                    <input
+                                        className="input-saas flex-1 uppercase font-black text-[10px] h-12"
+                                        value={regionalSecundario}
+                                        onChange={e => setRegionalSecundario(e.target.value.toUpperCase())}
+                                        placeholder="OPCIONAL"
+                                    />
+                                </div>
                             </div>
                         </div>
 

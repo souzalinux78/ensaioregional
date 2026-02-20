@@ -10,7 +10,7 @@ export class EnsaioRegionalService {
     }
 
 
-    async create(data: { nome: string; dataEvento: string; dataHoraInicio: string; dataHoraFim: string; ativo?: boolean; anciaoAtendimento?: string; regionalRegente?: string; regionalRegente2?: string; regionalPrincipal?: string; regionalSecundario?: string; localEvento?: string; cidadeEvento?: string; modoConvocacao?: boolean }, tenantId: string, userId: string) {
+    async create(data: { nome: string; dataEvento: string; dataHoraInicio: string; dataHoraFim: string; ativo?: boolean; anciaoAtendimento?: string; regionalRegente?: string; regionalRegente2?: string; regionalPrincipal?: string; regionalSecundario?: string; tipoResponsavelPrincipal?: string; tipoResponsavelSecundario?: string; localEvento?: string; cidadeEvento?: string; modoConvocacao?: boolean }, tenantId: string, userId: string) {
         const nome = data.nome.trim().toUpperCase() // Normalize to Upper
         const dataEvento = new Date(data.dataEvento)
 
@@ -46,6 +46,8 @@ export class EnsaioRegionalService {
             regionalRegente2: data.regionalRegente2?.trim().toUpperCase(),
             regionalPrincipal: data.regionalPrincipal?.trim().toUpperCase() || data.regionalRegente?.trim().toUpperCase(),
             regionalSecundario: data.regionalSecundario?.trim().toUpperCase() || data.regionalRegente2?.trim().toUpperCase(),
+            tipoResponsavelPrincipal: data.tipoResponsavelPrincipal || 'REGIONAL',
+            tipoResponsavelSecundario: data.tipoResponsavelSecundario || 'REGIONAL',
             dataInicio: dataHoraInicio,
             dataFim: dataHoraFim,
             localEvento: data.localEvento?.trim().toUpperCase(),
@@ -73,7 +75,7 @@ export class EnsaioRegionalService {
         return this.repository.findById(id, tenantId)
     }
 
-    async update(id: string, data: { nome?: string; dataEvento?: string; dataHoraInicio?: string; dataHoraFim?: string; ativo?: boolean; anciaoAtendimento?: string; regionalRegente?: string; regionalRegente2?: string; regionalPrincipal?: string; regionalSecundario?: string; localEvento?: string; cidadeEvento?: string; modoConvocacao?: boolean }, tenantId: string, userId: string) {
+    async update(id: string, data: { nome?: string; dataEvento?: string; dataHoraInicio?: string; dataHoraFim?: string; ativo?: boolean; anciaoAtendimento?: string; regionalRegente?: string; regionalRegente2?: string; regionalPrincipal?: string; regionalSecundario?: string; tipoResponsavelPrincipal?: string; tipoResponsavelSecundario?: string; localEvento?: string; cidadeEvento?: string; modoConvocacao?: boolean }, tenantId: string, userId: string) {
         const updateData: any = {}
 
         if (data.nome) updateData.nome = data.nome.trim().toUpperCase()
@@ -95,6 +97,8 @@ export class EnsaioRegionalService {
         if (data.regionalRegente2 !== undefined) updateData.regionalRegente2 = data.regionalRegente2.trim().toUpperCase()
         if (data.regionalPrincipal !== undefined) updateData.regionalPrincipal = data.regionalPrincipal.trim().toUpperCase()
         if (data.regionalSecundario !== undefined) updateData.regionalSecundario = data.regionalSecundario.trim().toUpperCase()
+        if (data.tipoResponsavelPrincipal !== undefined) updateData.tipoResponsavelPrincipal = data.tipoResponsavelPrincipal
+        if (data.tipoResponsavelSecundario !== undefined) updateData.tipoResponsavelSecundario = data.tipoResponsavelSecundario
         if (updateData.dataHoraInicio) updateData.dataInicio = updateData.dataHoraInicio
         if (updateData.dataHoraFim) updateData.dataFim = updateData.dataHoraFim
         if (data.localEvento !== undefined) updateData.localEvento = data.localEvento.trim().toUpperCase()

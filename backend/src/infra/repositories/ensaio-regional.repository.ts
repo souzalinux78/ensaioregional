@@ -2,7 +2,7 @@
 import { prisma } from '../database/prisma.client'
 
 export class EnsaioRegionalRepository {
-    async create(data: { nome: string; dataEvento: Date; dataHoraInicio: Date; dataHoraFim: Date; ativo: boolean; anciaoAtendimento?: string; regionalRegente?: string; regionalRegente2?: string; regionalPrincipal?: string; regionalSecundario?: string; dataInicio?: Date; dataFim?: Date; localEvento?: string; cidadeEvento?: string; modoConvocacao?: boolean }, tenantId: string) {
+    async create(data: { nome: string; dataEvento: Date; dataHoraInicio: Date; dataHoraFim: Date; ativo: boolean; anciaoAtendimento?: string; regionalRegente?: string; regionalRegente2?: string; regionalPrincipal?: string; regionalSecundario?: string; tipoResponsavelPrincipal?: string; tipoResponsavelSecundario?: string; dataInicio?: Date; dataFim?: Date; localEvento?: string; cidadeEvento?: string; modoConvocacao?: boolean }, tenantId: string) {
         return prisma.ensaioRegional.create({
             data: {
                 nome: data.nome,
@@ -15,6 +15,8 @@ export class EnsaioRegionalRepository {
                 regionalRegente2: data.regionalRegente2,
                 regionalPrincipal: data.regionalPrincipal,
                 regionalSecundario: data.regionalSecundario,
+                tipoResponsavelPrincipal: (data as any).tipoResponsavelPrincipal || 'REGIONAL',
+                tipoResponsavelSecundario: (data as any).tipoResponsavelSecundario || 'REGIONAL',
                 dataInicio: data.dataInicio,
                 dataFim: data.dataFim,
                 localEvento: data.localEvento,
@@ -62,7 +64,7 @@ export class EnsaioRegionalRepository {
         })
     }
 
-    async update(id: string, data: Partial<{ nome: string; dataEvento: Date; dataHoraInicio: Date; dataHoraFim: Date; ativo: boolean; anciaoAtendimento: string; regionalRegente: string; regionalRegente2: string; regionalPrincipal: string; regionalSecundario: string; dataInicio: Date; dataFim: Date; localEvento: string; cidadeEvento: string; modoConvocacao: boolean }>, tenantId: string) {
+    async update(id: string, data: Partial<{ nome: string; dataEvento: Date; dataHoraInicio: Date; dataHoraFim: Date; ativo: boolean; anciaoAtendimento: string; regionalRegente: string; regionalRegente2: string; regionalPrincipal: string; regionalSecundario: string; tipoResponsavelPrincipal: string; tipoResponsavelSecundario: string; dataInicio: Date; dataFim: Date; localEvento: string; cidadeEvento: string; modoConvocacao: boolean }>, tenantId: string) {
         // Ensure existence and ownership
         const exists = await this.findById(id, tenantId)
         if (!exists) return null
