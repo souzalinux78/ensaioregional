@@ -32,3 +32,14 @@ export function normalizeInstrumentName(name: string): string {
 
     return normalized
 }
+
+export function parseCidade(text: string): { cidade: string; bairro: string; exibicao: string } {
+    const normalized = normalizeString(text)
+    const parts = normalized.split('-').map(p => p.trim())
+
+    const cidade = parts[0] || 'DESCONHECIDO'
+    const bairro = parts.length > 1 ? parts.slice(1).join(' - ') : 'CENTRO'
+    const exibicao = normalized
+
+    return { cidade, bairro, exibicao }
+}

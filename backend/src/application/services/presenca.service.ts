@@ -2,7 +2,7 @@
 import { prisma } from '../../infra/database/prisma.client'
 // import { CidadeService } from './cidade.service'
 // import { InstrumentoService } from './instrumento.service'
-import { normalizeString, normalizeInstrumentName } from '../../shared/utils/normalization'
+import { normalizeString, normalizeInstrumentName, parseCidade } from '../../shared/utils/normalization'
 
 export class PresencaService {
     // private cidadeService: CidadeService
@@ -116,20 +116,31 @@ export class PresencaService {
                 // For now, let's duplicate logic or assume slight race condition risk is acceptable inside this transaction OR
                 // Ideally, we implement 'findOrCreate' directly here with tx.
 
-                const nomeCidade = this.normalize(data.cidadeNome)
+                const { cidade, bairro, exibicao } = parseCidade(data.cidadeNome)
                 const existingCidade = await tx.cidade.findUnique({
-                    where: { tenantId_nome: { tenantId, nome: nomeCidade } }
+                    where: { tenantId_nome: { tenantId, nome: cidade } } // Still use 'nome' as unique constraint for now, but update other fields
                 })
 
                 if (existingCidade) {
-                    if (existingCidade.deletedAt) {
-                        // Restore logic inside TX
-                        await tx.cidade.update({ where: { id: existingCidade.id }, data: { deletedAt: null } })
-                    }
+                    await tx.cidade.update({
+                        where: { id: existingCidade.id },
+                        data: {
+                            deletedAt: null,
+                            nomeCidade: cidade,
+                            nomeBairro: bairro,
+                            nomeExibicao: exibicao
+                        }
+                    })
                     cidadeId = existingCidade.id
                 } else {
                     const newCidade = await tx.cidade.create({
-                        data: { nome: nomeCidade, tenantId }
+                        data: {
+                            nome: cidade,
+                            nomeCidade: cidade,
+                            nomeBairro: bairro,
+                            nomeExibicao: exibicao,
+                            tenantId
+                        }
                     })
                     cidadeId = newCidade.id
                 }

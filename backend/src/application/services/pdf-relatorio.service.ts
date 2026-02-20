@@ -132,7 +132,10 @@ export class PdfRelatorioService {
             }
 
             if (logoPath) {
-                doc.image(logoPath, startX + 5, y + 5, { width: 80 })
+                const logoH = 40
+                const logoW = 80 // Max width
+                const vOffset = (45 - logoH) / 2
+                doc.image(logoPath, startX + 5, y + vOffset, { fit: [logoW, logoH], align: 'center', valign: 'center' })
             } else {
                 doc.rect(startX + 5, y + 5, 80, 35).lineWidth(0.5).stroke()
                 doc.fontSize(6).text('CONGREGAÇÃO\nCRISTÃ NO BRASIL', startX + 5, y + 15, { width: 80, align: 'center' })
