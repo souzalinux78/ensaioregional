@@ -29,9 +29,6 @@ export function UsersTab() {
     const authRegionalIds = (Array.isArray(authUser?.regionalIds) && authUser.regionalIds.length > 0)
         ? authUser.regionalIds
         : (authUser?.regionalId ? [authUser.regionalId] : [])
-    const regionaisOptions = isAdminRegional && authRegionalIds.length > 0
-        ? regionais.filter(r => authRegionalIds.includes(r.id))
-        : regionais
 
     const fetchData = async () => {
         try {
