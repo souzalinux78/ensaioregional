@@ -8,6 +8,8 @@ const service = new AdminUserService()
 export class AdminUserController {
     async list(request: FastifyRequest, reply: FastifyReply) {
         const u = (request as any).user
+        request.log?.info({ requesterId: u.userId, role: u.role }, 'User list accessed')
+        // regionalId vem apenas do token; nunca usar querystring/body para filtro de segurança
         const users = await service.list(u.tenantId, u.role, u.regionalId)
         return reply.send(users)
     }
@@ -16,7 +18,13 @@ export class AdminUserController {
         const { id } = request.params as { id: string }
         const u = (request as any).user
         const user = await service.getById(id, u.tenantId, u.role, u.regionalId)
-        if (!user) return reply.status(404).send({ message: 'User not found' })
+        if (!user) {
+            if (u.role === 'ADMIN_REGIONAL') {
+                const exists = await service.existsInTenant(id, u.tenantId)
+                if (exists) return reply.status(403).send({ message: 'Forbidden' })
+            }
+            return reply.status(404).send({ message: 'User not found' })
+        }
         return reply.send(user)
     }
 
@@ -71,6 +79,10 @@ export class AdminUserController {
             }, u.tenantId, u.role, u.regionalId)
             return reply.send(user)
         } catch (e: any) {
+            if (e.message === 'Usuário não encontrado.' && u.role === 'ADMIN_REGIONAL') {
+                const exists = await service.existsInTenant(id, u.tenantId)
+                if (exists) return reply.status(403).send({ message: 'Forbidden' })
+            }
             return reply.status(400).send({ message: e.message })
         }
     }
@@ -83,6 +95,10 @@ export class AdminUserController {
             await service.delete(id, u.userId, u.tenantId, u.role, u.regionalId)
             return reply.status(204).send()
         } catch (e: any) {
+            if (e.message === 'Usuário não encontrado.' && u.role === 'ADMIN_REGIONAL') {
+                const exists = await service.existsInTenant(id, u.tenantId)
+                if (exists) return reply.status(403).send({ message: 'Forbidden' })
+            }
             return reply.status(400).send({ message: e.message })
         }
     }
@@ -100,6 +116,10 @@ export class AdminUserController {
             const user = await service.assignEvento(id, evento_id, u.tenantId, u.role, u.regionalId)
             return reply.send(user)
         } catch (e: any) {
+            if (e.message === 'Usuário não encontrado.' && u.role === 'ADMIN_REGIONAL') {
+                const exists = await service.existsInTenant(id, u.tenantId)
+                if (exists) return reply.status(403).send({ message: 'Forbidden' })
+            }
             return reply.status(400).send({ message: e.message })
         }
     }

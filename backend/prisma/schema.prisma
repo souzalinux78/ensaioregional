@@ -50,6 +50,7 @@ model User {
   convocacoes   EventoUsuario[]
 
   @@unique([tenantId, email])
+  @@index([regionalId])
   @@map("users")
 }
 

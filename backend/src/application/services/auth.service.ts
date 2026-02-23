@@ -48,6 +48,7 @@ export class AuthService {
             }
         }
 
+        // Token deve conter regionalId para escopo ADMIN_REGIONAL (listagem/filtros no backend)
         const accessToken = jwt.sign(
             {
                 userId: user.id,

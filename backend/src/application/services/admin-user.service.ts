@@ -3,11 +3,22 @@ import { prisma } from '../../infra/database/prisma.client'
 import bcrypt from 'bcryptjs'
 
 export class AdminUserService {
+    /**
+     * Lista usuários. SUPERADMIN/ADMIN: todos do tenant.
+     * ADMIN_REGIONAL: apenas da sua regional e nunca SUPERADMIN.
+     * regionalId vem sempre do token (nunca do frontend).
+     */
     async list(tenantId: string, userRole?: string, userRegionalId?: string) {
         const where: any = { tenantId, deletedAt: null }
-        if (userRole === 'ADMIN_REGIONAL' && userRegionalId) {
+
+        if (userRole === 'ADMIN_REGIONAL') {
+            if (!userRegionalId) {
+                return []
+            }
             where.regionalId = userRegionalId
+            where.role = { not: 'SUPERADMIN' }
         }
+
         return prisma.user.findMany({
             where,
             include: {
@@ -18,10 +29,21 @@ export class AdminUserService {
         })
     }
 
+    /** Verifica se existe usuário no tenant (para distinguir 403 vs 404). */
+    async existsInTenant(id: string, tenantId: string): Promise<boolean> {
+        const u = await prisma.user.findFirst({
+            where: { id, tenantId },
+            select: { id: true }
+        })
+        return !!u
+    }
+
     async getById(id: string, tenantId: string, userRole?: string, userRegionalId?: string) {
         const where: any = { id, tenantId, deletedAt: null }
-        if (userRole === 'ADMIN_REGIONAL' && userRegionalId) {
+        if (userRole === 'ADMIN_REGIONAL') {
+            if (!userRegionalId) return null
             where.regionalId = userRegionalId
+            where.role = { not: 'SUPERADMIN' }
         }
         return prisma.user.findFirst({
             where,
