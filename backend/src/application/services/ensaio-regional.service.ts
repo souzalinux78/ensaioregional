@@ -170,14 +170,15 @@ export class EnsaioRegionalService {
         return result
     }
 
-    async linkUser(userId: string, ensaioId: string, tenantId: string) {
-        // EnsaioService delegating to Repo
-        return this.repository.linkUser(userId, ensaioId, tenantId)
+    async linkUser(userId: string, ensaioId: string, tenantId: string, userRole?: string, userRegionalId?: string) {
+        const regionalId = userRole === 'ADMIN_REGIONAL' ? userRegionalId : undefined
+        return this.repository.linkUser(userId, ensaioId, tenantId, regionalId)
     }
 
-    async summonUsers(ensaioId: string, userIds: string[], tenantId: string, adminUserId: string) {
-        // 1. Check event exists and belongs to tenant
-        const ensaio = await this.repository.findById(ensaioId, tenantId)
+    async summonUsers(ensaioId: string, userIds: string[], tenantId: string, adminUserId: string, userRole?: string, userRegionalId?: string) {
+        // 1. Check event exists and belongs to tenant (and to admin's regional when ADMIN_REGIONAL)
+        const regionalId = userRole === 'ADMIN_REGIONAL' ? userRegionalId : undefined
+        const ensaio = await this.repository.findById(ensaioId, tenantId, regionalId)
         if (!ensaio) throw new Error('Evento não encontrado')
 
         // 2. Perform summoning in repository

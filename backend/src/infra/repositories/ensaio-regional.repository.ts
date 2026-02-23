@@ -147,12 +147,12 @@ export class EnsaioRegionalRepository {
     }
 
     // Helper for user linking (Legacy/Individual)
-    async linkUser(userId: string, ensaioId: string, tenantId: string) {
+    async linkUser(userId: string, ensaioId: string, tenantId: string, regionalId?: string) {
         // Verify both belong to tenant
         const user = await prisma.user.findFirst({ where: { id: userId, tenantId } })
         if (!user) throw new Error('User not found')
 
-        const ensaio = await this.findById(ensaioId, tenantId)
+        const ensaio = await this.findById(ensaioId, tenantId, regionalId)
         if (!ensaio) throw new Error('Ensaio not found')
 
         return prisma.$transaction([

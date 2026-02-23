@@ -106,7 +106,7 @@ export class AdminEnsaioController {
         const { ensaioId } = schema.parse(req.body)
 
         try {
-            const result = await service.linkUser(id, ensaioId, req.user.tenantId)
+            const result = await service.linkUser(id, ensaioId, req.user.tenantId, req.user.role, req.user.regionalId)
             return reply.send(result)
         } catch (e: any) {
             if (e.message.includes('not found')) return reply.status(404).send({ message: e.message })
@@ -123,7 +123,7 @@ export class AdminEnsaioController {
         const { userIds } = schema.parse(req.body)
 
         try {
-            const result = await service.summonUsers(id, userIds, req.user.tenantId, req.user.userId)
+            const result = await service.summonUsers(id, userIds, req.user.tenantId, req.user.userId, req.user.role, req.user.regionalId)
             return reply.send(result)
         } catch (e: any) {
             if (e.message.includes('não encontrado')) return reply.status(404).send({ message: e.message })

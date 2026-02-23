@@ -4,8 +4,10 @@ import { AdminService, User, Evento } from '../../../services/admin.service'
 import { Plus, Shield, User as UserIcon, Lock, Link as LinkIcon, Link2Off } from 'lucide-react'
 import { ModalBase } from '../../../components/ModalBase'
 import { ActionButtons } from '../../../components/ActionButtons'
+import { useAuth } from '../../../context/AuthContext'
 
 export function UsersTab() {
+    const { user: authUser } = useAuth()
     const [users, setUsers] = useState<User[]>([])
     const [eventos, setEventos] = useState<Evento[]>([])
     const [loading, setLoading] = useState(true)
@@ -20,6 +22,12 @@ export function UsersTab() {
     const [ensaioRegionalId, setEnsaioRegionalId] = useState<string>('')
     const [regionalId, setRegionalId] = useState<string>('')
     const [regionais, setRegionais] = useState<any[]>([])
+
+    // Admin regional só pode atribuir usuários à(s) sua(s) regional(is); lista para dropdown
+    const isAdminRegional = authUser?.role === 'ADMIN_REGIONAL'
+    const regionaisOptions = isAdminRegional && authUser?.regionalId
+        ? regionais.filter(r => r.id === authUser.regionalId)
+        : regionais
 
     const fetchData = async () => {
         try {
@@ -108,7 +116,7 @@ export function UsersTab() {
             setEmail('')
             setRole('USER')
             setEnsaioRegionalId('')
-            setRegionalId('')
+            setRegionalId(isAdminRegional && authUser?.regionalId ? authUser.regionalId : '')
             setPassword('')
         }
         setModalOpen(true)
@@ -255,13 +263,16 @@ export function UsersTab() {
                                 value={regionalId}
                                 onChange={e => setRegionalId(e.target.value)}
                                 required={role === 'ADMIN_REGIONAL'}
+                                disabled={isAdminRegional && regionaisOptions.length === 1}
                             >
                                 <option value="">NENHUMA (ACESSO GLOBAL)</option>
-                                {regionais.map(r => (
+                                {regionaisOptions.map(r => (
                                     <option key={r.id} value={r.id}>{r.nome}</option>
                                 ))}
                             </select>
-                            <p className="text-[8px] font-bold text-subtext mt-1 ml-1 uppercase opacity-60">* Obrigatório para Admin Regional. SuperAdmins ignoram este filtro.</p>
+                            <p className="text-[8px] font-bold text-subtext mt-1 ml-1 uppercase opacity-60">
+                                {isAdminRegional ? 'Usuários cadastrados ficam na sua regional.' : '* Obrigatório para Admin Regional. SuperAdmins ignoram este filtro.'}
+                            </p>
                         </div>
                         <div>
                             <label className="label-saas ml-1">Vínculo com Evento</label>

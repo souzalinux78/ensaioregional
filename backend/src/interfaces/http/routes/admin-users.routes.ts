@@ -8,7 +8,7 @@ const userController = new AdminUserController()
 
 export async function adminUsersRoutes(app: FastifyInstance) {
     app.addHook('preHandler', verifyJwt)
-    app.addHook('preHandler', roleGuard('ADMIN'))
+    app.addHook('preHandler', roleGuard('ADMIN', 'ADMIN_REGIONAL'))
 
     app.get('/', userController.list.bind(userController))
     app.post('/', userController.create.bind(userController))
