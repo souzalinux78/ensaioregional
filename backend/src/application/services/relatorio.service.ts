@@ -3,11 +3,12 @@ import { prisma } from '../../infra/database/prisma.client'
 import { stringify } from 'csv-stringify/sync'
 
 export class RelatorioService {
-    async getStats(tenantId: string, search?: string, date?: string, eventId?: string, userRole?: string, userRegionalId?: string) {
+    async getStats(tenantId: string, search?: string, date?: string, eventId?: string, userRole?: string, userRegionalId?: string, userRegionalIds?: string[]) {
         const metricsWhere: any = { tenantId }
+        const ids = Array.isArray(userRegionalIds) && userRegionalIds.length > 0 ? userRegionalIds : (userRegionalId ? [userRegionalId] : [])
 
-        if (userRole === 'ADMIN_REGIONAL') {
-            metricsWhere.ensaioRegional = { regionalId: userRegionalId }
+        if (userRole === 'ADMIN_REGIONAL' && ids.length > 0) {
+            metricsWhere.ensaioRegional = { regionalId: ids.length === 1 ? ids[0] : { in: ids } }
         }
 
         if (eventId) {
@@ -92,8 +93,8 @@ export class RelatorioService {
             deletedAt: null
         }
 
-        if (userRole === 'ADMIN_REGIONAL') {
-            where.regionalId = userRegionalId
+        if (userRole === 'ADMIN_REGIONAL' && ids.length > 0) {
+            where.regionalId = ids.length === 1 ? ids[0] : { in: ids }
         }
 
         if (search) {
@@ -143,10 +144,11 @@ export class RelatorioService {
         }
     }
 
-    async exportCsv(tenantId: string, userRole?: string, userRegionalId?: string) {
+    async exportCsv(tenantId: string, userRole?: string, userRegionalId?: string, userRegionalIds?: string[]) {
         const where: any = { tenantId }
-        if (userRole === 'ADMIN_REGIONAL') {
-            where.ensaioRegional = { regionalId: userRegionalId }
+        const ids = Array.isArray(userRegionalIds) && userRegionalIds.length > 0 ? userRegionalIds : (userRegionalId ? [userRegionalId] : [])
+        if (userRole === 'ADMIN_REGIONAL' && ids.length > 0) {
+            where.ensaioRegional = { regionalId: ids.length === 1 ? ids[0] : { in: ids } }
         }
 
         const registros = await prisma.registroPresenca.findMany({

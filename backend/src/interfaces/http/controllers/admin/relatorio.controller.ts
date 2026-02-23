@@ -11,8 +11,8 @@ const pdfService = new PdfRelatorioService()
 export class RelatorioController {
     async getStats(request: FastifyRequest, reply: FastifyReply) {
         const { search, date, eventId } = request.query as { search?: string, date?: string, eventId?: string }
-        const { tenantId, role, regionalId } = (request as any).user
-        const stats = await service.getStats(tenantId, search, date, eventId, role, regionalId)
+        const { tenantId, role, regionalId, regionalIds } = (request as any).user
+        const stats = await service.getStats(tenantId, search, date, eventId, role, regionalId, regionalIds)
         return reply.send(stats)
     }
 
@@ -50,8 +50,8 @@ export class RelatorioController {
     }
 
     async exportCsv(request: FastifyRequest, reply: FastifyReply) {
-        const { tenantId, role, regionalId } = (request as any).user
-        const csv = await service.exportCsv(tenantId, role, regionalId)
+        const { tenantId, role, regionalId, regionalIds } = (request as any).user
+        const csv = await service.exportCsv(tenantId, role, regionalId, regionalIds)
 
         reply.header('Content-Type', 'text/csv')
         reply.header('Content-Disposition', 'attachment; filename="relatorio_presencas.csv"')
@@ -59,13 +59,14 @@ export class RelatorioController {
     }
 
     async gerarPdf(request: FastifyRequest, reply: FastifyReply) {
-        const { tenantId, role, regionalId } = (request as any).user
+        const { tenantId, role, regionalId, regionalIds } = (request as any).user
         const { ensaioId } = request.params as { ensaioId: string }
 
         try {
             const where: any = { id: ensaioId, tenantId }
             if (role === 'ADMIN_REGIONAL') {
-                where.regionalId = regionalId
+                const ids = Array.isArray(regionalIds) && regionalIds.length > 0 ? regionalIds : (regionalId ? [regionalId] : [])
+                if (ids.length > 0) where.regionalId = ids.length === 1 ? ids[0] : { in: ids }
             }
 
             const ensaio = await prisma.ensaioRegional.findFirst({
@@ -93,13 +94,14 @@ export class RelatorioController {
     }
 
     async gerarAnaliticoPdf(request: FastifyRequest, reply: FastifyReply) {
-        const { tenantId, role, regionalId } = (request as any).user
+        const { tenantId, role, regionalId, regionalIds } = (request as any).user
         const { ensaioId } = request.params as { ensaioId: string }
 
         try {
             const where: any = { id: ensaioId, tenantId }
             if (role === 'ADMIN_REGIONAL') {
-                where.regionalId = regionalId
+                const ids = Array.isArray(regionalIds) && regionalIds.length > 0 ? regionalIds : (regionalId ? [regionalId] : [])
+                if (ids.length > 0) where.regionalId = ids.length === 1 ? ids[0] : { in: ids }
             }
 
             const ensaio = await prisma.ensaioRegional.findFirst({

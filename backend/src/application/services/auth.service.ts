@@ -14,11 +14,22 @@ const ACCESS_TOKEN_EXPIRES_IN = '15m'
 // 7 days
 const REFRESH_TOKEN_EXPIRES_IN = '7d'
 
+/** Retorna IDs das regionais do usuário: user_regionais ou fallback users.regionalId (retrocompat). */
+function getRegionalIdsForToken(user: { regionalId?: string | null; userRegionais?: { regionalId: string }[] }): string[] {
+    const fromPivot = user.userRegionais?.map((ur) => ur.regionalId).filter(Boolean) ?? []
+    if (fromPivot.length > 0) return fromPivot
+    if (user.regionalId) return [user.regionalId]
+    return []
+}
+
 export class AuthService {
     async login(email: string, password: string) {
         const user = await prisma.user.findFirst({
             where: { email },
-            include: { ensaioRegional: { select: { nome: true, dataHoraInicio: true, dataHoraFim: true } } }
+            include: {
+                ensaioRegional: { select: { nome: true, dataHoraInicio: true, dataHoraFim: true } },
+                userRegionais: { select: { regionalId: true } }
+            }
         })
 
         if (!user) {
@@ -48,13 +59,14 @@ export class AuthService {
             }
         }
 
-        // Token deve conter regionalId para escopo ADMIN_REGIONAL (listagem/filtros no backend)
+        const regionalIds = getRegionalIdsForToken(user)
         const accessToken = jwt.sign(
             {
                 userId: user.id,
                 tenantId: user.tenantId,
                 role: user.role,
-                regionalId: user.regionalId,
+                regionalId: user.regionalId ?? (regionalIds[0] || null),
+                regionalIds: regionalIds.length > 0 ? regionalIds : undefined,
                 ensaioRegionalId: user.ensaioRegionalId,
                 ensaioRegionalNome: user.ensaioRegional?.nome,
                 ensaioRegionalInicio: user.ensaioRegional?.dataHoraInicio,
@@ -119,16 +131,21 @@ export class AuthService {
 
             const user = await tx.user.findUnique({
                 where: { id: tokenRecord.userId },
-                include: { ensaioRegional: { select: { nome: true, dataHoraInicio: true, dataHoraFim: true } } }
+                include: {
+                    ensaioRegional: { select: { nome: true, dataHoraInicio: true, dataHoraFim: true } },
+                    userRegionais: { select: { regionalId: true } }
+                }
             })
             if (!user) throw new Error('User not found')
 
+            const regionalIds = getRegionalIdsForToken(user)
             const newAccessToken = jwt.sign(
                 {
                     userId: user.id,
                     tenantId: user.tenantId,
                     role: user.role,
-                    regionalId: user.regionalId,
+                    regionalId: user.regionalId ?? (regionalIds[0] || null),
+                    regionalIds: regionalIds.length > 0 ? regionalIds : undefined,
                     ensaioRegionalId: user.ensaioRegionalId,
                     ensaioRegionalNome: user.ensaioRegional?.nome,
                     ensaioRegionalInicio: user.ensaioRegional?.dataHoraInicio,

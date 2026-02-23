@@ -43,6 +43,7 @@ model User {
   tenant         Tenant          @relation(fields: [tenantId], references: [id])
   regional       Regional?       @relation(fields: [regionalId], references: [id])
   ensaioRegional EnsaioRegional? @relation(fields: [ensaioRegionalId], references: [id])
+  userRegionais  UserRegional[]
 
   registros     RegistroPresenca[]
   auditLogs     AuditLog[]
@@ -52,6 +53,21 @@ model User {
   @@unique([tenantId, email])
   @@index([regionalId])
   @@map("users")
+}
+
+model UserRegional {
+  id         String   @id @default(uuid())
+  userId     String   @map("user_id")
+  regionalId String   @map("regional_id")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  regional Regional @relation(fields: [regionalId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, regionalId])
+  @@index([userId])
+  @@index([regionalId])
+  @@map("user_regionais")
 }
 
 enum Role {
@@ -71,6 +87,7 @@ model Regional {
 
   tenant           Tenant           @relation(fields: [tenantId], references: [id])
   users            User[]
+  userRegionais    UserRegional[]
   ensaiosRegionais EnsaioRegional[]
   metas            MetaRegional[]
 

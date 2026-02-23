@@ -28,14 +28,15 @@ export class EnsaioRegionalRepository {
         })
     }
 
-    async findById(id: string, tenantId: string, regionalId?: string) {
+    async findById(id: string, tenantId: string, regionalId?: string, regionalIds?: string[]) {
+        const where: any = { id, tenantId, deletedAt: null }
+        if (Array.isArray(regionalIds) && regionalIds.length > 0) {
+            where.regionalId = { in: regionalIds }
+        } else if (regionalId) {
+            where.regionalId = regionalId
+        }
         return prisma.ensaioRegional.findFirst({
-            where: {
-                id,
-                tenantId,
-                regionalId,
-                deletedAt: null,
-            },
+            where,
             include: {
                 _count: { select: { users: true } },
                 regional: true
@@ -56,25 +57,22 @@ export class EnsaioRegionalRepository {
         })
     }
 
-    async list(tenantId: string, regionalId?: string) {
+    async list(tenantId: string, regionalId?: string, regionalIds?: string[]) {
+        const where: any = { tenantId, deletedAt: null }
+        if (Array.isArray(regionalIds) && regionalIds.length > 0) {
+            where.regionalId = { in: regionalIds }
+        } else if (regionalId) {
+            where.regionalId = regionalId
+        }
         return prisma.ensaioRegional.findMany({
-            where: {
-                tenantId,
-                regionalId,
-                deletedAt: null,
-            },
-            include: {
-                regional: true
-            },
-            orderBy: {
-                dataEvento: 'desc',
-            },
+            where,
+            include: { regional: true },
+            orderBy: { dataEvento: 'desc' },
         })
     }
 
-    async update(id: string, data: Partial<{ nome: string; dataEvento: Date; dataHoraInicio: Date; dataHoraFim: Date; ativo: boolean; anciaoAtendimento: string; regionalRegente: string; regionalRegente2: string; regionalPrincipal: string; regionalSecundario: string; tipoResponsavelPrincipal: string; tipoResponsavelSecundario: string; dataInicio: Date; dataFim: Date; localEvento: string; cidadeEvento: string; modoConvocacao: boolean; regionalId: string }>, tenantId: string, regionalId?: string) {
-        // Ensure existence and ownership
-        const exists = await this.findById(id, tenantId, regionalId)
+    async update(id: string, data: Partial<{ nome: string; dataEvento: Date; dataHoraInicio: Date; dataHoraFim: Date; ativo: boolean; anciaoAtendimento: string; regionalRegente: string; regionalRegente2: string; regionalPrincipal: string; regionalSecundario: string; tipoResponsavelPrincipal: string; tipoResponsavelSecundario: string; dataInicio: Date; dataFim: Date; localEvento: string; cidadeEvento: string; modoConvocacao: boolean; regionalId: string }>, tenantId: string, regionalId?: string, regionalIds?: string[]) {
+        const exists = await this.findById(id, tenantId, regionalId, regionalIds)
         if (!exists) return null
 
         return prisma.ensaioRegional.update({
@@ -83,8 +81,8 @@ export class EnsaioRegionalRepository {
         })
     }
 
-    async softDelete(id: string, tenantId: string, regionalId?: string) {
-        const exists = await this.findById(id, tenantId, regionalId)
+    async softDelete(id: string, tenantId: string, regionalId?: string, regionalIds?: string[]) {
+        const exists = await this.findById(id, tenantId, regionalId, regionalIds)
         if (!exists) return null
 
         return prisma.ensaioRegional.update({
@@ -147,12 +145,11 @@ export class EnsaioRegionalRepository {
     }
 
     // Helper for user linking (Legacy/Individual)
-    async linkUser(userId: string, ensaioId: string, tenantId: string, regionalId?: string) {
-        // Verify both belong to tenant
+    async linkUser(userId: string, ensaioId: string, tenantId: string, regionalId?: string, regionalIds?: string[]) {
         const user = await prisma.user.findFirst({ where: { id: userId, tenantId } })
         if (!user) throw new Error('User not found')
 
-        const ensaio = await this.findById(ensaioId, tenantId, regionalId)
+        const ensaio = await this.findById(ensaioId, tenantId, regionalId, regionalIds)
         if (!ensaio) throw new Error('Ensaio not found')
 
         return prisma.$transaction([

@@ -10,9 +10,9 @@ export class EnsaioRegionalService {
     }
 
 
-    async create(data: { nome: string; dataEvento: string; dataHoraInicio: string; dataHoraFim: string; ativo?: boolean; anciaoAtendimento?: string; regionalRegente?: string; regionalRegente2?: string; regionalPrincipal?: string; regionalSecundario?: string; tipoResponsavelPrincipal?: string; tipoResponsavelSecundario?: string; localEvento?: string; cidadeEvento?: string; modoConvocacao?: boolean; regionalId?: string }, tenantId: string, userId: string, userRole?: string, userRegionalId?: string) {
-        // Se for ADMIN_REGIONAL, força o regionalId dele
-        const effectiveRegionalId = userRole === 'ADMIN_REGIONAL' ? userRegionalId : data.regionalId
+    async create(data: { nome: string; dataEvento: string; dataHoraInicio: string; dataHoraFim: string; ativo?: boolean; anciaoAtendimento?: string; regionalRegente?: string; regionalRegente2?: string; regionalPrincipal?: string; regionalSecundario?: string; tipoResponsavelPrincipal?: string; tipoResponsavelSecundario?: string; localEvento?: string; cidadeEvento?: string; modoConvocacao?: boolean; regionalId?: string }, tenantId: string, userId: string, userRole?: string, userRegionalId?: string, userRegionalIds?: string[]) {
+        const firstRegional = Array.isArray(userRegionalIds) && userRegionalIds.length > 0 ? userRegionalIds[0] : userRegionalId
+        const effectiveRegionalId = userRole === 'ADMIN_REGIONAL' ? firstRegional : data.regionalId
 
         const nome = data.nome.trim().toUpperCase() // Normalize to Upper
         const dataEvento = new Date(data.dataEvento)
@@ -71,18 +71,25 @@ export class EnsaioRegionalService {
         return created
     }
 
-    async list(tenantId: string, userRole?: string, userRegionalId?: string) {
-        const regionalId = userRole === 'ADMIN_REGIONAL' ? userRegionalId : undefined
-        return this.repository.list(tenantId, regionalId)
+    async list(tenantId: string, userRole?: string, userRegionalId?: string, userRegionalIds?: string[]) {
+        if (userRole !== 'ADMIN_REGIONAL') return this.repository.list(tenantId)
+        if (Array.isArray(userRegionalIds) && userRegionalIds.length > 0) {
+            return this.repository.list(tenantId, undefined, userRegionalIds)
+        }
+        return this.repository.list(tenantId, userRegionalId)
     }
 
-    async findById(id: string, tenantId: string, userRole?: string, userRegionalId?: string) {
-        const regionalId = userRole === 'ADMIN_REGIONAL' ? userRegionalId : undefined
-        return this.repository.findById(id, tenantId, regionalId)
+    async findById(id: string, tenantId: string, userRole?: string, userRegionalId?: string, userRegionalIds?: string[]) {
+        if (userRole !== 'ADMIN_REGIONAL') return this.repository.findById(id, tenantId)
+        if (Array.isArray(userRegionalIds) && userRegionalIds.length > 0) {
+            return this.repository.findById(id, tenantId, undefined, userRegionalIds)
+        }
+        return this.repository.findById(id, tenantId, userRegionalId)
     }
 
-    async update(id: string, data: { nome?: string; dataEvento?: string; dataHoraInicio?: string; dataHoraFim?: string; ativo?: boolean; anciaoAtendimento?: string; regionalRegente?: string; regionalRegente2?: string; regionalPrincipal?: string; regionalSecundario?: string; tipoResponsavelPrincipal?: string; tipoResponsavelSecundario?: string; localEvento?: string; cidadeEvento?: string; modoConvocacao?: boolean; regionalId?: string }, tenantId: string, userId: string, userRole?: string, userRegionalId?: string) {
+    async update(id: string, data: { nome?: string; dataEvento?: string; dataHoraInicio?: string; dataHoraFim?: string; ativo?: boolean; anciaoAtendimento?: string; regionalRegente?: string; regionalRegente2?: string; regionalPrincipal?: string; regionalSecundario?: string; tipoResponsavelPrincipal?: string; tipoResponsavelSecundario?: string; localEvento?: string; cidadeEvento?: string; modoConvocacao?: boolean; regionalId?: string }, tenantId: string, userId: string, userRole?: string, userRegionalId?: string, userRegionalIds?: string[]) {
         const regionalFilter = userRole === 'ADMIN_REGIONAL' ? userRegionalId : undefined
+        const regionalIdsFilter = userRole === 'ADMIN_REGIONAL' ? userRegionalIds : undefined
         const updateData: any = {}
 
         if (data.nome) updateData.nome = data.nome.trim().toUpperCase()
@@ -119,7 +126,7 @@ export class EnsaioRegionalService {
 
 
         if (updateData.nome || updateData.dataEvento) {
-            const current = await this.findById(id, tenantId, userRole, userRegionalId)
+            const current = await this.findById(id, tenantId, userRole, userRegionalId, userRegionalIds)
             if (!current) throw new Error('Not found')
 
             const checkName = updateData.nome || current.nome
@@ -129,7 +136,7 @@ export class EnsaioRegionalService {
             if (duplicate) throw new Error('Ensaio already exists with this name and date')
         }
 
-        const current = await this.findById(id, tenantId, userRole, userRegionalId)
+        const current = await this.findById(id, tenantId, userRole, userRegionalId, userRegionalIds)
         if (!current) throw new Error('Not found')
 
         const r1 = (data.regionalPrincipal !== undefined ? data.regionalPrincipal : (current as any).regionalPrincipal)?.trim().toUpperCase()
@@ -139,7 +146,7 @@ export class EnsaioRegionalService {
             throw new Error('O Regional Secundário não pode ser igual ao Principal')
         }
 
-        const result = await this.repository.update(id, updateData, tenantId, regionalFilter)
+        const result = await this.repository.update(id, updateData, tenantId, regionalFilter, regionalIdsFilter)
         if (!result) throw new Error('Not found')
 
         await AuditService.log({
@@ -154,9 +161,14 @@ export class EnsaioRegionalService {
         return result
     }
 
-    async delete(id: string, tenantId: string, userId: string, userRole?: string, userRegionalId?: string) {
-        const regionalId = userRole === 'ADMIN_REGIONAL' ? userRegionalId : undefined
-        const result = await this.repository.softDelete(id, tenantId, regionalId)
+    async delete(id: string, tenantId: string, userId: string, userRole?: string, userRegionalId?: string, userRegionalIds?: string[]) {
+        let regionalId: string | undefined
+        let regionalIds: string[] | undefined
+        if (userRole === 'ADMIN_REGIONAL') {
+            if (Array.isArray(userRegionalIds) && userRegionalIds.length > 0) regionalIds = userRegionalIds
+            else regionalId = userRegionalId
+        }
+        const result = await this.repository.softDelete(id, tenantId, regionalId, regionalIds)
         if (!result) throw new Error('Not found')
 
         await AuditService.log({
@@ -170,15 +182,20 @@ export class EnsaioRegionalService {
         return result
     }
 
-    async linkUser(userId: string, ensaioId: string, tenantId: string, userRole?: string, userRegionalId?: string) {
+    async linkUser(userId: string, ensaioId: string, tenantId: string, userRole?: string, userRegionalId?: string, userRegionalIds?: string[]) {
         const regionalId = userRole === 'ADMIN_REGIONAL' ? userRegionalId : undefined
-        return this.repository.linkUser(userId, ensaioId, tenantId, regionalId)
+        const regionalIds = userRole === 'ADMIN_REGIONAL' ? userRegionalIds : undefined
+        return this.repository.linkUser(userId, ensaioId, tenantId, regionalId, regionalIds)
     }
 
-    async summonUsers(ensaioId: string, userIds: string[], tenantId: string, adminUserId: string, userRole?: string, userRegionalId?: string) {
-        // 1. Check event exists and belongs to tenant (and to admin's regional when ADMIN_REGIONAL)
-        const regionalId = userRole === 'ADMIN_REGIONAL' ? userRegionalId : undefined
-        const ensaio = await this.repository.findById(ensaioId, tenantId, regionalId)
+    async summonUsers(ensaioId: string, userIds: string[], tenantId: string, adminUserId: string, userRole?: string, userRegionalId?: string, userRegionalIds?: string[]) {
+        let regionalId: string | undefined
+        let regionalIds: string[] | undefined
+        if (userRole === 'ADMIN_REGIONAL') {
+            if (Array.isArray(userRegionalIds) && userRegionalIds.length > 0) regionalIds = userRegionalIds
+            else regionalId = userRegionalId
+        }
+        const ensaio = await this.repository.findById(ensaioId, tenantId, regionalId, regionalIds)
         if (!ensaio) throw new Error('Evento não encontrado')
 
         // 2. Perform summoning in repository

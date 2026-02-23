@@ -21,12 +21,16 @@ export function UsersTab() {
     const [role, setRole] = useState<string>('USER')
     const [ensaioRegionalId, setEnsaioRegionalId] = useState<string>('')
     const [regionalId, setRegionalId] = useState<string>('')
+    const [regionalIds, setRegionalIds] = useState<string[]>([])
     const [regionais, setRegionais] = useState<any[]>([])
 
-    // Admin regional só pode atribuir usuários à(s) sua(s) regional(is); lista para dropdown
     const isAdminRegional = authUser?.role === 'ADMIN_REGIONAL'
-    const regionaisOptions = isAdminRegional && authUser?.regionalId
-        ? regionais.filter(r => r.id === authUser.regionalId)
+    const isSuperAdmin = authUser?.role === 'SUPERADMIN' || authUser?.role === 'ADMIN'
+    const authRegionalIds = (Array.isArray(authUser?.regionalIds) && authUser.regionalIds.length > 0)
+        ? authUser.regionalIds
+        : (authUser?.regionalId ? [authUser.regionalId] : [])
+    const regionaisOptions = isAdminRegional && authRegionalIds.length > 0
+        ? regionais.filter(r => authRegionalIds.includes(r.id))
         : regionais
 
     const fetchData = async () => {
@@ -59,6 +63,9 @@ export function UsersTab() {
                 role,
                 ensaioRegionalId: ensaioRegionalId === '' ? null : ensaioRegionalId,
                 regionalId: regionalId === '' ? null : regionalId
+            }
+            if (isSuperAdmin) {
+                data.regionalIds = regionalIds
             }
             if (password) data.password = password
 
@@ -108,7 +115,9 @@ export function UsersTab() {
             setEmail(item.email)
             setRole(item.role)
             setEnsaioRegionalId(item.ensaioRegionalId || '')
-            setRegionalId(item.regionalId || '')
+            const ids = (item as any).userRegionais?.map((ur: any) => ur.regional?.id).filter(Boolean) ?? (item.regionalId ? [item.regionalId] : [])
+            setRegionalIds(ids)
+            setRegionalId(item.regionalId || (ids[0] ?? ''))
             setPassword('')
         } else {
             setEditItem(null)
@@ -116,7 +125,8 @@ export function UsersTab() {
             setEmail('')
             setRole('USER')
             setEnsaioRegionalId('')
-            setRegionalId(isAdminRegional && authUser?.regionalId ? authUser.regionalId : '')
+            setRegionalIds(isAdminRegional && authRegionalIds.length > 0 ? [authRegionalIds[0]] : [])
+            setRegionalId(isAdminRegional && authRegionalIds.length > 0 ? authRegionalIds[0] : '')
             setPassword('')
         }
         setModalOpen(true)
@@ -173,9 +183,13 @@ export function UsersTab() {
                                                 {(item.role === 'SUPERADMIN' || item.role === 'ADMIN') ? <Shield size={10} /> : <UserIcon size={10} />}
                                                 {item.role === 'ADMIN' ? 'SUPERADMIN' : item.role}
                                             </span>
-                                            {item.regional?.nome && (
+                                            {((item as any).userRegionais?.length > 0
+                                                ? (item as any).userRegionais.map((ur: any) => ur.regional?.nome).filter(Boolean).join(', ')
+                                                : item.regional?.nome) && (
                                                 <span className="text-[8px] font-black text-blue-500 uppercase ml-1">
-                                                    @{item.regional.nome}
+                                                    @{(item as any).userRegionais?.length > 0
+                                                        ? (item as any).userRegionais.map((ur: any) => ur.regional?.nome).filter(Boolean).join(', ')
+                                                        : item.regional?.nome}
                                                 </span>
                                             )}
                                         </div>
@@ -256,24 +270,57 @@ export function UsersTab() {
                                 <option value="SUPERADMIN">SUPERADMIN</option>
                             </select>
                         </div>
-                        <div>
-                            <label className="label-saas ml-1">Regional Associada</label>
-                            <select
-                                className="input-saas font-black uppercase text-[10px] h-12"
-                                value={regionalId}
-                                onChange={e => setRegionalId(e.target.value)}
-                                required={role === 'ADMIN_REGIONAL'}
-                                disabled={isAdminRegional && regionaisOptions.length === 1}
-                            >
-                                <option value="">NENHUMA (ACESSO GLOBAL)</option>
-                                {regionaisOptions.map(r => (
-                                    <option key={r.id} value={r.id}>{r.nome}</option>
-                                ))}
-                            </select>
-                            <p className="text-[8px] font-bold text-subtext mt-1 ml-1 uppercase opacity-60">
-                                {isAdminRegional ? 'Usuários cadastrados ficam na sua regional.' : '* Obrigatório para Admin Regional. SuperAdmins ignoram este filtro.'}
-                            </p>
-                        </div>
+                        {isSuperAdmin && (
+                            <div className="md:col-span-2">
+                                <label className="label-saas ml-1">Regionais Associadas</label>
+                                <div className="border border-gray-200 rounded-2xl p-3 max-h-40 overflow-y-auto bg-gray-50/50">
+                                    {regionais.map(r => (
+                                        <label key={r.id} className="flex items-center gap-2 py-1.5 cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                checked={regionalIds.includes(r.id)}
+                                                onChange={e => {
+                                                    if (e.target.checked) setRegionalIds(prev => [...prev, r.id])
+                                                    else setRegionalIds(prev => prev.filter(id => id !== r.id))
+                                                }}
+                                                className="rounded border-gray-300"
+                                            />
+                                            <span className="text-xs font-bold uppercase">{r.nome}</span>
+                                        </label>
+                                    ))}
+                                </div>
+                                <p className="text-[8px] font-bold text-subtext mt-1 ml-1 uppercase opacity-60">
+                                    Selecione uma ou mais regionais para ADMIN_REGIONAL. Deixe vazio para acesso global.
+                                </p>
+                            </div>
+                        )}
+                        {isAdminRegional && (
+                            <div className="md:col-span-2">
+                                <label className="label-saas ml-1">Regional do usuário</label>
+                                <p className="text-xs font-bold text-subtext bg-gray-50 rounded-xl p-3 border border-gray-100">
+                                    Usuários cadastrados por você ficam nas suas regionais. Você não pode alterar regionais de outros usuários.
+                                    {authRegionalIds.length > 0 && (
+                                        <span className="block mt-1 text-blue-600">Suas regionais: {regionais.filter(r => authRegionalIds.includes(r.id)).map(r => r.nome).join(', ')}</span>
+                                    )}
+                                </p>
+                            </div>
+                        )}
+                        {!isSuperAdmin && !isAdminRegional && (
+                            <div>
+                                <label className="label-saas ml-1">Regional Associada</label>
+                                <select
+                                    className="input-saas font-black uppercase text-[10px] h-12"
+                                    value={regionalId}
+                                    onChange={e => { setRegionalId(e.target.value); setRegionalIds(e.target.value ? [e.target.value] : []) }}
+                                    required={role === 'ADMIN_REGIONAL'}
+                                >
+                                    <option value="">NENHUMA (ACESSO GLOBAL)</option>
+                                    {regionais.map(r => (
+                                        <option key={r.id} value={r.id}>{r.nome}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        )}
                         <div>
                             <label className="label-saas ml-1">Vínculo com Evento</label>
                             <select

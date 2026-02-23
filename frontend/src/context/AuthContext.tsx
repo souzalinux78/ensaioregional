@@ -13,6 +13,7 @@ interface User {
     ensaioRegionalInicio?: string
     ensaioRegionalFim?: string
     regionalId?: string
+    regionalIds?: string[]
 }
 
 interface AuthContextType {
@@ -40,12 +41,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setToken(newToken)
         try {
             const decoded: any = jwtDecode(newToken)
+            const regionalIds = Array.isArray(decoded.regionalIds) ? decoded.regionalIds : (decoded.regionalId ? [decoded.regionalId] : [])
             setUser({
                 userId: decoded.userId,
                 name: decoded.name || 'Usuário',
                 role: decoded.role,
                 tenantId: decoded.tenantId,
                 regionalId: decoded.regionalId,
+                regionalIds: regionalIds.length > 0 ? regionalIds : undefined,
                 ensaioRegionalId: decoded.ensaioRegionalId,
                 ensaioRegionalNome: decoded.ensaioRegionalNome,
                 ensaioRegionalInicio: decoded.ensaioRegionalInicio,

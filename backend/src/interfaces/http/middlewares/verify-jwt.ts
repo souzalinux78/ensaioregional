@@ -14,13 +14,17 @@ export async function verifyJwt(request: FastifyRequest, reply: FastifyReply) {
 
         const token = authHeader.replace('Bearer ', '')
         const decoded = jwt.verify(token, JWT_ACCESS_SECRET) as any
+        const regionalIds = Array.isArray(decoded.regionalIds) && decoded.regionalIds.length > 0
+            ? decoded.regionalIds
+            : (decoded.regionalId ? [decoded.regionalId] : [])
 
-            ; (request as any).user = {
-                userId: decoded.userId,
-                tenantId: decoded.tenantId,
-                role: decoded.role,
-                regionalId: decoded.regionalId,
-            }
+        ; (request as any).user = {
+            userId: decoded.userId,
+            tenantId: decoded.tenantId,
+            role: decoded.role,
+            regionalId: decoded.regionalId,
+            regionalIds,
+        }
     } catch (err) {
         await reply.status(401).send({ message: 'Invalid token' })
         return
