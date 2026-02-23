@@ -70,13 +70,14 @@ export function DashboardTab() {
 
     const handleRefresh = () => {
         fetchStats(selectedEventId, selectedRegionalId)
+        fetchEventos()
     }
 
-    // Metrics are derived from stats
+    // Métricas: "Eventos Monitorados" usa a mesma lista da aba Eventos (já exclui deletados)
     const metrics = [
         { title: 'Total Presenças', value: stats?.totalPresencas || 0, icon: CheckCircle2, color: 'text-blue-600', bg: 'bg-blue-50' },
         { title: 'Músicos / Organistas', value: stats?.byInstrumento?.reduce((acc, curr) => acc + curr.total, 0) || 0, icon: Music4, color: 'text-purple-600', bg: 'bg-purple-50' },
-        { title: 'Eventos Monitorados', value: selectedEventId === 'all' ? (stats?.byEvento?.length || 0) : 1, icon: CalendarDays, color: 'text-green-600', bg: 'bg-green-50' },
+        { title: 'Eventos Monitorados', value: selectedEventId === 'all' ? (eventos?.length ?? 0) : 1, icon: CalendarDays, color: 'text-green-600', bg: 'bg-green-50' },
         { title: 'Cidades Atendidas', value: stats?.totalCidadesAtendidas || 0, icon: MapPin, color: 'text-orange-600', bg: 'bg-orange-50' },
     ]
 
