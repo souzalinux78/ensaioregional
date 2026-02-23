@@ -61,6 +61,7 @@ export function DashboardTab() {
 
     useEffect(() => {
         fetchStats(selectedEventId, selectedRegionalId)
+        fetchEventos()
         if (selectedEventId === 'all') {
             localStorage.removeItem('dashboard:selectedEvent')
         } else {
