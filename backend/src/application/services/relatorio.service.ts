@@ -4,11 +4,14 @@ import { stringify } from 'csv-stringify/sync'
 
 export class RelatorioService {
     async getStats(tenantId: string, search?: string, date?: string, eventId?: string, userRole?: string, userRegionalId?: string, userRegionalIds?: string[]) {
-        const metricsWhere: any = { tenantId }
         const ids = Array.isArray(userRegionalIds) && userRegionalIds.length > 0 ? userRegionalIds : (userRegionalId ? [userRegionalId] : [])
-
+        // Sempre excluir eventos soft-deleted das métricas e listas
+        const metricsWhere: any = {
+            tenantId,
+            ensaioRegional: { deletedAt: null }
+        }
         if (userRole === 'ADMIN_REGIONAL' && ids.length > 0) {
-            metricsWhere.ensaioRegional = { regionalId: ids.length === 1 ? ids[0] : { in: ids } }
+            metricsWhere.ensaioRegional = { deletedAt: null, regionalId: ids.length === 1 ? ids[0] : { in: ids } }
         }
 
         if (eventId) {
