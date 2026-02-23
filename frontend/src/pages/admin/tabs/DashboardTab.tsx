@@ -74,11 +74,12 @@ export function DashboardTab() {
         fetchEventos()
     }
 
-    // Métricas: "Eventos Monitorados" usa a mesma lista da aba Eventos (já exclui deletados)
+    // Eventos Monitorados = mesma lista da aba Eventos (só não-deletados). Array vazio = 0.
+    const eventosCount = Array.isArray(eventos) ? eventos.length : 0
     const metrics = [
         { title: 'Total Presenças', value: stats?.totalPresencas || 0, icon: CheckCircle2, color: 'text-blue-600', bg: 'bg-blue-50' },
         { title: 'Músicos / Organistas', value: stats?.byInstrumento?.reduce((acc, curr) => acc + curr.total, 0) || 0, icon: Music4, color: 'text-purple-600', bg: 'bg-purple-50' },
-        { title: 'Eventos Monitorados', value: selectedEventId === 'all' ? (eventos?.length ?? 0) : 1, icon: CalendarDays, color: 'text-green-600', bg: 'bg-green-50' },
+        { title: 'Eventos Monitorados', value: selectedEventId === 'all' ? eventosCount : 1, icon: CalendarDays, color: 'text-green-600', bg: 'bg-green-50' },
         { title: 'Cidades Atendidas', value: stats?.totalCidadesAtendidas || 0, icon: MapPin, color: 'text-orange-600', bg: 'bg-orange-50' },
     ]
 
